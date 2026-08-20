@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useApp } from './context/AppContext';
 import { getGreetingMessage, ALL_WIDGETS, SINAV_MUFREDATLARI } from './constants';
 import { Sidebar } from './components/layout/Sidebar';
@@ -69,7 +69,42 @@ export default function App() {
   // O sekmedeki widget listesi
   const currentLayout = widgetLayouts?.[currentTabId] || [];
   const activeWidgets = currentLayout.filter(w => w.gorunur);
+const widgetGridRef = useRef(null);
+const widgetRefs = useRef({});
 
+const MASONRY_ROW_HEIGHT = 8;
+const MASONRY_ROW_GAP = 18;
+
+const recalcMasonry = () => {
+  const grid = widgetGridRef.current;
+  if (!grid) return;
+  Object.entries(widgetRefs.current).forEach(([id, el]) => {
+    if (!el) return;
+    const contentHeight = el.scrollHeight;
+    const span = Math.ceil((contentHeight + MASONRY_ROW_GAP) / (MASONRY_ROW_HEIGHT + MASONRY_ROW_GAP));
+    const next = `span ${span}`;
+    if (el.style.gridRowEnd !== next) el.style.gridRowEnd = next;
+  });
+};
+
+useLayoutEffect(() => {
+  recalcMasonry();
+});
+
+useEffect(() => {
+  let frame = null;
+  const observer = new ResizeObserver(() => {
+    if (frame) cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(recalcMasonry);
+  });
+  Object.values(widgetRefs.current).forEach(el => el && observer.observe(el));
+  window.addEventListener('resize', recalcMasonry);
+  return () => {
+    if (frame) cancelAnimationFrame(frame);
+    observer.disconnect();
+    window.removeEventListener('resize', recalcMasonry);
+  };
+}, [activeWidgets, currentTabId, isEditMode]);
   // Bu sekmede henüz eklenmemiş olan widget'lar
   const unaddedWidgets = ALL_WIDGETS.filter(w => !activeWidgets.some(aw => aw.id === w.id));
 
@@ -109,8 +144,10 @@ export default function App() {
     return { ...t, diff };
   }).filter(t => t.diff >= 10).sort((a, b) => b.diff - a.diff).slice(0, 5);
 
-  const today = new Date();
+const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+ 
 
   // Evrensel Widget Render Motoru
   const renderWidgetContent = (id) => {
@@ -422,9 +459,10 @@ export default function App() {
             {!isDersSubPage && (
               activeWidgets.length === 0 ? (
                 <motion.div 
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bos-durum-notu" 
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{ duration: 0.15 }}
+  className="bos-durum-notu"
                   style={{ padding: '50px 20px', background: 'var(--renk-yuzey)', border: '2px dashed var(--renk-kenarlik)', borderRadius: '24px', margin: '16px 0' }}
                 >
                   <p style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '600' }}>Bu sekmede widget bulunmuyor. Dilediğin widget'ları ekleyerek başlayabilirsin.</p>
@@ -433,35 +471,37 @@ export default function App() {
               ) : (
                 <AnimatePresence mode="wait">
                   <motion.div
-                    key={currentTabId}
-                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                    className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''}`}
-                    style={{ marginTop: '16px' }}
-                  >
+  ref={widgetGridRef}
+  key={currentTabId}
+  initial={{ opacity: 0, y: 4 }}
+  animate={{ opacity: 1, y: 0 }}
+  exit={{ opacity: 0, y: -4 }}
+  transition={{ duration: 0.15, ease: 'easeOut' }}
+  className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''}`}
+  style={{ marginTop: '16px' }}
+>
                     {activeWidgets.map((w, index) => {
                       const widgetInfo = ALL_WIDGETS.find(aw => aw.id === w.id);
                       return (
                         <motion.div
-                          layout
-                          transition={{
-                            layout: { duration: 0.26, ease: [0.16, 1, 0.3, 1] },
-                            opacity: { duration: 0.2 }
-                          }}
-                          key={w.id}
-                          className="widget-kutu"
-                          draggable={isEditMode}
-                          onDragStart={() => setDraggedWidgetId(w.id)}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={() => {
-                            const fromIndex = activeWidgets.findIndex(item => item.id === draggedWidgetId);
-                            reorderWidgets(currentTabId, fromIndex, index);
-                            setDraggedWidgetId(null);
-                          }}
-                          style={{ gridColumn: `span ${Math.min(4, w.genislik || 2)}` }}
-                        >
+  ref={el => { widgetRefs.current[w.id] = el; }}
+  layout
+  transition={{
+    layout: { duration: 0.15, ease: 'easeOut' },
+    opacity: { duration: 0.12 }
+  }}
+  key={w.id}
+  className="widget-kutu"
+  data-genislik={Math.min(4, Math.max(1, w.genislik || 2))}
+  draggable={isEditMode}
+  onDragStart={() => setDraggedWidgetId(w.id)}
+  onDragOver={(e) => e.preventDefault()}
+  onDrop={() => {
+    const fromIndex = activeWidgets.findIndex(item => item.id === draggedWidgetId);
+    reorderWidgets(currentTabId, fromIndex, index);
+    setDraggedWidgetId(null);
+  }}
+>
                           {isEditMode && (
                             <div className="widget-arac-cubugu">
                               <div className="widget-arac-sol">

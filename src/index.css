@@ -4386,20 +4386,20 @@ body.koyu-tema .global-arama input:focus {
 }
 
 .widget-grid {
-    position: relative;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-auto-flow: dense;
+    grid-auto-rows: 8px;
     align-items: start;
     gap: 18px;
-    margin-top: 0;
+    width: 100%;
+    margin-top: 16px;
 }
 
 .widget-kutu {
     position: relative;
     display: flex;
     flex-direction: column;
-    grid-column: span var(--widget-genislik, 2);
     min-width: 0;
     height: auto;
     box-sizing: border-box;
@@ -4412,13 +4412,27 @@ body.koyu-tema .global-arama input:focus {
     transition: box-shadow 0.2s ease;
 }
 
-.widget-kutu[style*="span 1"] { grid-column: span 1; }
-.widget-kutu[style*="span 2"] { grid-column: span 2; }
-.widget-kutu[style*="span 3"] { grid-column: span 3; }
-.widget-kutu[style*="span 4"] { grid-column: span 4; }
-
 .widget-kutu:hover {
     box-shadow: 0 10px 30px -4px rgba(25, 42, 36, 0.06);
+}
+
+/* --- DOĞRU GRID BOYUTLANDIRMASI --- */
+.widget-kutu[data-genislik="1"] { grid-column: span 1; }
+.widget-kutu[data-genislik="2"] { grid-column: span 2; }
+.widget-kutu[data-genislik="3"] { grid-column: span 3; }
+.widget-kutu[data-genislik="4"] { grid-column: span 4; }
+
+@media (max-width: 1100px) {
+    .widget-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .widget-kutu[data-genislik="1"] { grid-column: span 1; }
+    .widget-kutu[data-genislik="2"],
+    .widget-kutu[data-genislik="3"],
+    .widget-kutu[data-genislik="4"] { grid-column: span 2; }
+}
+
+@media (max-width: 700px) {
+    .widget-grid { grid-template-columns: minmax(0, 1fr); }
+    .widget-kutu[data-genislik] { grid-column: span 1; }
 }
 
 .widget-grid.duzenle-modu .widget-kutu {
@@ -4453,7 +4467,7 @@ body.koyu-tema .global-arama input:focus {
 }
 
 .widget-icerik {
-    flex: 1 1 auto;
+    flex: 0 0 auto !important; /* ÖNEMLİ: Masonry hesabını bozmaması için esnemeyi kapatıyoruz */
     min-width: 0;
     min-height: 0;
     width: 100%;
@@ -4615,11 +4629,18 @@ body.koyu-tema .global-arama input:focus {
     background-size: 24px 24px;
     border-radius: var(--radius-buyuk);
     padding: 8px;
+    transition: background-color 0.15s ease;
+}
+
+.widget-kutu {
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+    transition: outline-color 0.15s ease, opacity 0.15s ease;
 }
 
 .widget-grid.duzenle-modu .widget-kutu {
-    outline: 2px dashed color-mix(in srgb, var(--renk-vurgu) 60%, transparent);
-    outline-offset: -2px;
+    outline-color: color-mix(in srgb, var(--renk-vurgu) 60%, transparent);
+    outline-style: dashed;
 }
 
 .widget-grid.duzenle-modu .widget-kutu.surukleniyor {
@@ -4627,7 +4648,7 @@ body.koyu-tema .global-arama input:focus {
 }
 
 .widget-grid.duzenle-modu .widget-kutu.surukle-hedef {
-    outline: 2px dashed var(--renk-vurgu);
+    outline-color: var(--renk-vurgu);
 }
 
 
@@ -4908,3 +4929,21 @@ body.koyu-tema .widget-ekle-oge:hover {
     }
 }
 
+/* Widget kartlarının genel hareket kabiliyetini düzenleyen kural */
+.dashboard-card {
+  /* 
+    Buradaki ayarların anlamı şudur:
+    - transform, top, left: Kutunun yer değiştirmesi
+    - width, height: Kutunun boyut değiştirmesi
+    - 0.2s: Hareketin 0.2 saniyede (çok kısa ama hissedilir bir sürede) bitmesini sağlar.
+    - ease-out: Harekete hızlı başlar ama yerine otururken yumuşakça fren yapar. Bu sayede abartılı bir uçma değil, pürüzsüz bir kayma hissi oluşur.
+  */
+  transition: transform 0.2s ease-out, top 0.2s ease-out, left 0.2s ease-out, width 0.2s ease, height 0.2s ease !important;
+}
+
+/* Eğer sürükle-bırak için react-grid-layout gibi bir hazır sistem kullanıyorsan, bu sistemin kendi hareket sınıflarını da dizginlememiz gerekir: */
+.react-grid-item.cssTransforms {
+  transition-property: transform, width, height !important;
+  transition-duration: 0.2s !important; 
+  transition-timing-function: ease-out !important;
+}
