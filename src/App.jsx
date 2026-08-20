@@ -359,33 +359,38 @@ export default function App() {
       <Sidebar onOpenAvatarModal={() => setShowAvatarModal(true)} />
       
       <main className="ana-icerik-alani" style={{ flex: 1 }}>
-        <Topbar />
+        {/* Topbar'a taşınan widget kontrol özellikleri */}
+        <Topbar 
+          isEditMode={isEditMode}
+          setIsEditMode={setIsEditMode}
+          onOpenAddWidgetModal={() => setShowAddModal(true)}
+          onResetWidgets={() => resetWidgets(currentTabId)}
+          showEditControls={activePage !== 'ayarlar' && !isDersSubPage}
+        />
 
         {activePage !== 'ayarlar' ? (
           <div className="container">
-            <header className="ust-baslik">
-              <div>
+            {/* SOLDA SELAMLAMA, SAĞDA TARİH - AYNI YATAY DÜZLEMDE */}
+            <header className="ust-baslik" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 {activePage === 'ana' && (
-                  <>
-                    <h1>{greetingText || userName}</h1>
-                    <p id="bugunTarih">{new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  </>
+                  <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '700' }}>
+                    {greetingText || userName}
+                  </h1>
                 )}
                 {activePage === 'ders' && (
                   <>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '6px' }}>
-                      <h1 style={{ margin: 0 }}>{simgesi("📚")} Ders Takip</h1>
-                      <select 
-                        className="sinav-turu-select" 
-                        value={dersData.sinavTuru} 
-                        onChange={e => changeExamType(e.target.value)}
-                      >
-                        {Object.keys(SINAV_MUFREDATLARI).map(k => (
-                          <option key={k} value={k}>{SINAV_MUFREDATLARI[k].ad}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="kpss-geri-sayim-satiri">
+                    <h1 style={{ margin: 0 }}>{simgesi("📚")} Ders Takip</h1>
+                    <select 
+                      className="sinav-turu-select" 
+                      value={dersData.sinavTuru} 
+                      onChange={e => changeExamType(e.target.value)}
+                    >
+                      {Object.keys(SINAV_MUFREDATLARI).map(k => (
+                        <option key={k} value={k}>{SINAV_MUFREDATLARI[k].ad}</option>
+                      ))}
+                    </select>
+                    <div className="kpss-geri-sayim-satiri" style={{ marginLeft: '8px' }}>
                       <span className="kpss-geri-sayim-metin">{simgesi("⏳")} {examCountdown}</span>
                       <input 
                         type="date" 
@@ -397,31 +402,14 @@ export default function App() {
                   </>
                 )}
                 {activePage === 'is' && (
-                  <>
-                    <h1>{simgesi("💼")} İş Takip</h1>
-                    <p id="bugunTarih">Projeler & Görevler</p>
-                  </>
+                  <h1 style={{ margin: 0 }}>{simgesi("💼")} İş Takip</h1>
                 )}
               </div>
 
-              {/* Düzenleme Araçları */}
-              {!isDersSubPage && (
-                <div className="widget-panel-arac">
-                  <button 
-                    type="button" 
-                    className={`widget-duzenle-btn ${isEditMode ? 'aktif' : ''}`}
-                    onClick={() => setIsEditMode(!isEditMode)}
-                  >
-                    {isEditMode ? "✓ Düzenlemeyi Bitir" : "⊞ Widget Düzenle"}
-                  </button>
-                  {isEditMode && (
-                    <div className="widget-duzenle-araclari">
-                      <button type="button" className="widget-ekle-btn" onClick={() => setShowAddModal(true)}>+ Widget Ekle</button>
-                      <button type="button" className="widget-sifirla-btn" onClick={() => resetWidgets(currentTabId)}>Varsayılana Dön</button>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Sağ tarafta tek satırda duran tarih bilgisi */}
+              <div id="bugunTarih" style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'var(--renk-metin-ikincil)', whiteSpace: 'nowrap' }}>
+                {new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </div>
             </header>
 
             {/* Dinamik Sekme Barı */}
@@ -430,7 +418,7 @@ export default function App() {
             {/* Sabit Ders Alt Sayfaları */}
             {isDersSubPage && <DersModule />}
 
-           {/* Dinamik Widget Grid Alanı */}
+            {/* Dinamik Widget Grid Alanı */}
             {!isDersSubPage && (
               activeWidgets.length === 0 ? (
                 <motion.div 
@@ -520,6 +508,7 @@ export default function App() {
         ) : (
           <SettingsModule />
         )}
+
         {/* Dialog / Prompt Modalı */}
         {dialogModal.isOpen && (
           <div className="modal-overlay" onClick={closeDialog} style={{ zIndex: 3000 }}>

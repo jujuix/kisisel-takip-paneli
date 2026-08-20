@@ -1,7 +1,13 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
 
-export const Topbar = () => {
+export const Topbar = ({ 
+  isEditMode, 
+  setIsEditMode, 
+  onOpenAddWidgetModal, 
+  onResetWidgets,
+  showEditControls = true 
+}) => {
   const { theme, toggleTheme, userName, userAvatar, simgesi } = useApp();
 
   const getAvatarDisplay = () => {
@@ -20,6 +26,25 @@ export const Topbar = () => {
       </div>
 
       <div className="global-ust-sag">
+        {/* Koyu Modun Yanına Taşınan Widget Düzenleme Kontrolleri */}
+        {showEditControls && (
+          <div className="widget-panel-arac" style={{ margin: 0 }}>
+            <button
+              type="button"
+              className={`widget-duzenle-btn ${isEditMode ? 'aktif' : ''}`}
+              onClick={() => setIsEditMode(!isEditMode)}
+            >
+              {isEditMode ? 'Bitti' : 'Widget Düzenle'}
+            </button>
+            {isEditMode && (
+              <div className="widget-duzenle-araclari">
+                <button type="button" className="widget-ekle-btn" onClick={onOpenAddWidgetModal}>+ Ekle</button>
+                <button type="button" className="widget-sifirla-btn" onClick={onResetWidgets}>Sıfırla</button>
+              </div>
+            )}
+          </div>
+        )}
+
         <button id="temaButonu" className="tema-butonu" type="button" onClick={toggleTheme}>
           {theme === 'koyu' ? <>{simgesi("☀️")} Açık Tema</> : <>{simgesi("🌙")} Koyu Tema</>}
         </button>
