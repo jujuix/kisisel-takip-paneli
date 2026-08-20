@@ -11,6 +11,9 @@ export const DynamicTabBar = ({ sayfaTuru }) => {
 
   const handleSelect = (tabId) => {
     setActiveTabByPage(prev => ({ ...prev, [sayfaTuru]: tabId }));
+    
+    // Eğer ders sayfasıysa ve sabit bir alt sayfaysa onu da tetikle
+    // Ancak yeni eklenen 'özel' bir sekme ise, doğrudan widget görünümüne düşecek.
     if (sayfaTuru === 'ders') {
       setActiveDersTab(tabId);
     }

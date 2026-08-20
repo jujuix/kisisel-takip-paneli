@@ -84,7 +84,18 @@ export const ALL_WIDGETS = [
   { id: "ders-zayif-konular", baslik: "Zayıf Konular", ikon: "⚠️", kategori: "Ders & Sınav", varsayilanGenislik: 4 },
   { id: "is-zaman", baslik: "Zaman Çizelgesi", ikon: "🗓️", kategori: "İş & Proje", varsayilanGenislik: 4 },
   { id: "is-fikirler", baslik: "Fikirler Alanı", ikon: "💡", kategori: "İş & Proje", varsayilanGenislik: 2 },
-  { id: "is-hizli-not", baslik: "Hızlı Not", ikon: "⚡", kategori: "İş & Proje", varsayilanGenislik: 2 }
+  { id: "is-hizli-not", baslik: "Hızlı Not", ikon: "⚡", kategori: "İş & Proje", varsayilanGenislik: 2 },
+  { id: "konular-panel", baslik: "Konular", ikon: "📖", kategori: "Ders & Sınav", varsayilanGenislik: 4 },
+  { id: "deneme-istatistikler", baslik: "Deneme İstatistikleri", ikon: "📊", kategori: "Ders & Sınav", varsayilanGenislik: 4 },
+  { id: "deneme-ekle", baslik: "Yeni Deneme Ekle", ikon: "📝", kategori: "Ders & Sınav", varsayilanGenislik: 2 },
+  { id: "deneme-gecmisi", baslik: "Deneme Geçmişi", ikon: "📈", kategori: "Ders & Sınav", varsayilanGenislik: 2 },
+  { id: "yanlis-ekle", baslik: "Yanlış Soru Ekle", ikon: "➕", kategori: "Ders & Sınav", varsayilanGenislik: 2 },
+  { id: "yanlis-analiz", baslik: "Yanlış Analizi", ikon: "📊", kategori: "Ders & Sınav", varsayilanGenislik: 2 },
+  { id: "yanlis-arsiv", baslik: "Yanlış Arşivim", ikon: "❌", kategori: "Ders & Sınav", varsayilanGenislik: 4 },
+  { id: "takip-takvim", baslik: "Çalışma Takvimi", ikon: "🔥", kategori: "Ders & Sınav", varsayilanGenislik: 2 },
+  { id: "takip-hedefler", baslik: "Hedefler", ikon: "🎯", kategori: "Ders & Sınav", varsayilanGenislik: 4 },
+  { id: "aliskanlik-haftalik", baslik: "Haftalık Alışkanlıklar", ikon: "🌱", kategori: "Planlama", varsayilanGenislik: 2 },
+  { id: "aliskanlik-aylik", baslik: "Aylık Hedefler", ikon: "🎯", kategori: "Planlama", varsayilanGenislik: 1 },
 ];
 
 export const SINAV_MUFREDATLARI = {

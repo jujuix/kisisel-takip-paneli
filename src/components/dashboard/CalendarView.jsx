@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { MONTH_NAMES, GUN_ADLARI } from '../../constants';
+// 1. ADIM: Kendi oluşturduğumuz saat seçiciyi içeri aktarıyoruz.
+import { CustomTimePicker } from '../ui/CustomTimePicker'; 
 
 export const CalendarView = ({ size = 2 }) => {
   const { panelData, setPanelData } = useApp();
@@ -111,13 +113,14 @@ export const CalendarView = ({ size = 2 }) => {
                 <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>📅 {selectedDate}</h4>
               </div>
 
-              <form onSubmit={handleAddMeeting} className="toplanti-formu" style={{ margin: '0 0 10px 0' }}>
-                <input
-                  type="time"
+              <form onSubmit={handleAddMeeting} className="toplanti-formu" style={{ margin: '0 0 10px 0', display: 'flex', gap: '8px' }}>
+                {/* 2. ADIM: Eski `<input type="time" .../>` silindi, yerine CustomTimePicker geldi! */}
+                <CustomTimePicker 
                   value={meetingTime}
-                  onChange={(e) => setMeetingTime(e.target.value)}
-                  style={{ width: '85px', padding: '8px' }}
+                  onChange={(val) => setMeetingTime(val)}
+                  placeholder="--:--"
                 />
+                
                 <input
                   type="text"
                   placeholder="Not / Toplantı..."

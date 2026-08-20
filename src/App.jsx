@@ -9,10 +9,15 @@ import { CalendarView } from './components/dashboard/CalendarView';
 import { TaskCategoryCard } from './components/dashboard/TaskCategoryCard';
 import { Notebook } from './components/dashboard/Notebook';
 import { Pomodoro } from './components/dashboard/Pomodoro';
-import { DersModule } from './components/lessons/DersModule';
+import { KonularWidget, DenemeEkleWidget, DenemeGecmisiWidget, YanlisAnalizWidget, YanlisEkleWidget, YanlisArsivWidget, CalismaTakvimWidget, HedeflerWidget } from './components/lessons/DersModule';
 import { WorkModule } from './components/work/WorkModule';
 import { SettingsModule } from './components/settings/SettingsModule';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CustomSelect } from './components/ui/CustomSelect';
+import { CustomTimePicker } from './components/ui/CustomTimePicker';
+import { HabitWeeklyWidget } from './components/dashboard/HabitWeeklyWidget';
+import { HabitMonthlyWidget } from './components/dashboard/HabitMonthlyWidget';
+
 
 export default function App() {
   const { 
@@ -152,6 +157,13 @@ const today = new Date();
   // Evrensel Widget Render Motoru
   const renderWidgetContent = (id) => {
     switch (id) {
+      case "aliskanlik-haftalik":
+        return <HabitWeeklyWidget />;
+      case "aliskanlik-aylik":
+        return <HabitMonthlyWidget />;
+      case "aliskanlik-haftalik":
+        return <HabitWeeklyWidget />;
+      
       case "gunluk-ozet":
         return <DailySummary />;
       case "gorevler":
@@ -222,10 +234,15 @@ const today = new Date();
             <div className="section-header"><h2>{simgesi("🎯")} Günün Çalışma Planı</h2></div>
             <div className="calisma-plani-formu">
               <div className="gorev-formu-satir">
-                <select value={planDers} onChange={e => setPlanDers(e.target.value)}>
-                  <option value="">Ders Seç...</option>
-                  {dersData.dersler.map(d => <option key={d.id} value={d.ad}>{d.ad}</option>)}
-                </select>
+                <CustomSelect 
+                  value={planDers} 
+                  onChange={(val) => setPlanDers(val)} 
+                  placeholder="Ders Seç..."
+                  options={[
+                    { value: "", label: "Ders Seç..." },
+                    ...dersData.dersler.map(d => ({ value: d.ad, label: d.ad }))
+                  ]} 
+                />
                 <input type="text" placeholder="Konu..." value={planKonu} onChange={e => setPlanKonu(e.target.value)} />
               </div>
               <div className="gorev-formu-satir">
@@ -369,7 +386,14 @@ const today = new Date();
             </div>
           </div>
         );
-
+      case "konular-panel": return <KonularWidget />;
+      case "deneme-ekle": return <DenemeEkleWidget />;
+      case "deneme-gecmisi": return <DenemeGecmisiWidget />;
+      case "yanlis-analiz": return <YanlisAnalizWidget />;
+      case "yanlis-ekle": return <YanlisEkleWidget />;
+      case "yanlis-arsiv": return <YanlisArsivWidget />;
+      case "takip-takvim": return <CalismaTakvimWidget />;
+      case "takip-hedefler": return <HedeflerWidget />;
       default:
         return null;
     }
@@ -402,7 +426,7 @@ const today = new Date();
           setIsEditMode={setIsEditMode}
           onOpenAddWidgetModal={() => setShowAddModal(true)}
           onResetWidgets={() => resetWidgets(currentTabId)}
-          showEditControls={activePage !== 'ayarlar' && !isDersSubPage}
+          showEditControls={activePage !== 'ayarlar'}
         />
 
         {activePage !== 'ayarlar' ? (
@@ -442,8 +466,6 @@ const today = new Date();
                   <h1 style={{ margin: 0 }}>{simgesi("💼")} İş Takip</h1>
                 )}
               </div>
-
-              {/* Sağ tarafta tek satırda duran tarih bilgisi */}
               <div id="bugunTarih" style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'var(--renk-metin-ikincil)', whiteSpace: 'nowrap' }}>
                 {new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </div>
@@ -452,17 +474,14 @@ const today = new Date();
             {/* Dinamik Sekme Barı */}
             <DynamicTabBar sayfaTuru={activePage} />
 
-            {/* Sabit Ders Alt Sayfaları */}
-            {isDersSubPage && <DersModule />}
-
-            {/* Dinamik Widget Grid Alanı */}
-            {!isDersSubPage && (
-              activeWidgets.length === 0 ? (
+            {/* Dinamik Widget Grid Alanı - ARTIK TÜM SAYFALARDA AKTİF */}
+            <div style={{ marginTop: '30px' }}>
+              {activeWidgets.length === 0 ? (
                 <motion.div 
-  initial={{ opacity: 0 }}
-  animate={{ opacity: 1 }}
-  transition={{ duration: 0.15 }}
-  className="bos-durum-notu"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.15 }}
+                  className="bos-durum-notu"
                   style={{ padding: '50px 20px', background: 'var(--renk-yuzey)', border: '2px dashed var(--renk-kenarlik)', borderRadius: '24px', margin: '16px 0' }}
                 >
                   <p style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '600' }}>Bu sekmede widget bulunmuyor. Dilediğin widget'ları ekleyerek başlayabilirsin.</p>
@@ -471,41 +490,72 @@ const today = new Date();
               ) : (
                 <AnimatePresence mode="wait">
                   <motion.div
-  ref={widgetGridRef}
-  key={currentTabId}
-  initial={{ opacity: 0, y: 4 }}
-  animate={{ opacity: 1, y: 0 }}
-  exit={{ opacity: 0, y: -4 }}
-  transition={{ duration: 0.15, ease: 'easeOut' }}
-  className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''}`}
-  style={{ marginTop: '16px' }}
->
+                    ref={widgetGridRef}
+                    key={currentTabId}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.15, ease: 'easeOut' }}
+                    className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''}`}
+                    style={{ marginTop: '16px' }}
+                  >
                     {activeWidgets.map((w, index) => {
                       const widgetInfo = ALL_WIDGETS.find(aw => aw.id === w.id);
                       return (
                         <motion.div
-  ref={el => { widgetRefs.current[w.id] = el; }}
-  layout
-  transition={{
-    layout: { duration: 0.15, ease: 'easeOut' },
-    opacity: { duration: 0.12 }
-  }}
-  key={w.id}
-  className="widget-kutu"
-  data-genislik={Math.min(4, Math.max(1, w.genislik || 2))}
-  draggable={isEditMode}
-  onDragStart={() => setDraggedWidgetId(w.id)}
-  onDragOver={(e) => e.preventDefault()}
-  onDrop={() => {
-    const fromIndex = activeWidgets.findIndex(item => item.id === draggedWidgetId);
-    reorderWidgets(currentTabId, fromIndex, index);
-    setDraggedWidgetId(null);
-  }}
->
+                          ref={el => { widgetRefs.current[w.id] = el; }}
+                          layout
+                          transition={{
+                            layout: { duration: 0.25, ease: 'easeOut' }, // Animasyon süresi biraz yumuşatıldı
+                            opacity: { duration: 0.12 }
+                          }}
+                          key={w.id}
+                          className={`widget-kutu ${isEditMode ? 'duzenle-modu' : ''}`}
+                          data-genislik={Math.min(4, Math.max(1, w.genislik || 2))}
+                          
+                          /* ==========================================
+                             GÜNCELLENMİŞ SÜRÜKLE & BIRAK EKLENTİSİ
+                             ========================================== */
+                          draggable={isEditMode}
+                          
+                          onDragStart={(e) => {
+                            setDraggedWidgetId(w.id);
+                            e.dataTransfer.effectAllowed = "move";
+                            e.currentTarget.style.opacity = "0.4"; // Sürüklerken şık bir şekilde saydamlaşır
+                          }}
+                          
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = "move";
+                          }}
+                          
+                          onDragEnd={(e) => {
+                            e.currentTarget.style.opacity = "1"; // Bırakılınca veya iptal olunca saydamlık düzelir
+                            setDraggedWidgetId(null);
+                          }}
+                          
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            
+                            // Kendi üzerine bırakıldıysa veya bir sorun varsa saydamlığı geri al ve bitir
+                            if (!draggedWidgetId || draggedWidgetId === w.id) {
+                              e.currentTarget.style.opacity = "1";
+                              return;
+                            }
+                            
+                            const fromIndex = activeWidgets.findIndex(item => item.id === draggedWidgetId);
+                            reorderWidgets(currentTabId, fromIndex, index);
+                            
+                            e.currentTarget.style.opacity = "1";
+                            setDraggedWidgetId(null);
+                          }}
+                          /* ========================================== */
+                        >
                           {isEditMode && (
                             <div className="widget-arac-cubugu">
                               <div className="widget-arac-sol">
-                                <span className="widget-surukle" title="Taşı">⠿</span>
+                                {/* İmleç grab (tutma eli) yapıldı */}
+                                <span className="widget-surukle" title="Sürükleyip Taşı" style={{ cursor: 'grab' }}>⠿</span>
                                 <span className="widget-arac-baslik">
                                   {simgesi(widgetInfo?.ikon)} {widgetInfo?.baslik}
                                 </span>
@@ -542,8 +592,8 @@ const today = new Date();
                     })}
                   </motion.div>
                 </AnimatePresence>
-              )
-            )}
+              )}
+            </div>
           </div>
         ) : (
           <SettingsModule />

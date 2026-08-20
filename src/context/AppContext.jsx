@@ -115,6 +115,22 @@ export const AppProvider = ({ children }) => {
       { id: "takvim", genislik: 2, gorunur: true },
       { id: "is-fikirler", genislik: 2, gorunur: true },
       { id: "is-hizli-not", genislik: 2, gorunur: true }
+    ],
+    ders_konular: [
+      { id: "konular-panel", genislik: 4, gorunur: true }
+    ],
+    ders_denemeler: [
+      { id: "deneme-ekle", genislik: 2, gorunur: true },
+      { id: "deneme-gecmisi", genislik: 2, gorunur: true }
+    ],
+    ders_yanlislar: [
+      { id: "yanlis-ekle", genislik: 2, gorunur: true },
+      { id: "yanlis-analiz", genislik: 2, gorunur: true },
+      { id: "yanlis-arsiv", genislik: 4, gorunur: true }
+    ],
+    ders_takip: [
+      { id: "takip-takvim", genislik: 2, gorunur: true },
+      { id: "takip-hedefler", genislik: 4, gorunur: true }
     ]
   };
 
