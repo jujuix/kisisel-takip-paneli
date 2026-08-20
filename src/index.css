@@ -6,7 +6,10 @@
    tek tek renk kodu yazmak yerine bu değişkenleri kullanmak,
    böylece ileride tek bir yerden tüm siteyi güncelleyebilmek.
    ========================================================== */
-
+/* Paneli %80 boyutunda göster (Browser Zoom simülasyonu) */
+body {
+  zoom: 0.8; 
+}
 :root {
     /* Nötr Temel Renkler */
     --renk-vurgu: #10b981;
@@ -5040,4 +5043,13 @@ input[type="number"]::-webkit-outer-spin-button {
 input[type="number"] {
   -moz-appearance: textfield !important;
   appearance: textfield !important;
+}
+
+/* Widget Grid Yapısı (Matematiksel olarak JS ile Eşitlendi) */
+.widget-grid {
+  display: grid !important;
+  grid-template-columns: repeat(6, 1fr) !important;
+  grid-auto-rows: 8px !important; /* BU SATIR ÇOK ÖNEMLİ: JS'deki MASONRY_ROW_HEIGHT */
+  gap: 18px !important; /* BU SATIR ÇOK ÖNEMLİ: JS'deki MASONRY_ROW_GAP */
+  align-items: start;
 }

@@ -511,7 +511,7 @@ const today = new Date();
                           }}
                           key={w.id}
                           className={`widget-kutu ${isEditMode ? 'duzenle-modu' : ''}`}
-                          data-genislik={Math.min(4, Math.max(1, w.genislik || 2))}
+                          data-genislik={Math.min(6, Math.max(1, w.genislik || 2))}
                           
                           /* ==========================================
                              GÜNCELLENMİŞ SÜRÜKLE & BIRAK EKLENTİSİ
@@ -562,14 +562,14 @@ const today = new Date();
                               </div>
                               <div className="widget-arac-sag">
                                 <div className="widget-boyut-grubu">
-                                  {[1, 2, 3, 4].map(size => (
+                                  {[1, 2, 3, 4, 5, 6].map(size => (
                                     <button 
                                       key={size} 
                                       type="button" 
                                       className={`widget-boyut-btn ${w.genislik === size ? 'aktif' : ''}`} 
                                       onClick={() => updateWidgetWidth(currentTabId, w.id, size)}
                                     >
-                                      {size === 4 ? 'Tam' : `${size}s`}
+                                      {size === 6 ? 'Tam' : `${size}s`}
                                     </button>
                                   ))}
                                 </div>
