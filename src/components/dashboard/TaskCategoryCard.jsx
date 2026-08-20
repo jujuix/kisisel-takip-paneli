@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const TaskCategoryCard = ({ category, sourcePage = "ana" }) => {
   const { 
@@ -127,21 +128,44 @@ export const TaskCategoryCard = ({ category, sourcePage = "ana" }) => {
           <div className="bos-liste-notu">Aktif görev yok.</div>
         ) : (
           activeTasks.map(g => (
-            <div key={g.id} className="task" style={{ borderLeft: `4px solid ${urgencyColors[g.aciliyet || 'orta']}` }}>
-              <input type="checkbox" checked={g.tamamlandi} onChange={() => toggleTask(g.id)} />
-              <div className="task-metin">
-                <h3>{g.metin}</h3>
-              </div>
-              <button 
-                type="button" 
-                style={{ border: 'none', background: 'transparent', cursor: 'pointer', opacity: g.anaSayfadaGoster ? 1 : 0.3 }}
-                title={g.anaSayfadaGoster ? "Ana sayfada gösteriliyor" : "Ana sayfada gizli"}
-                onClick={() => toggleTaskHomeVisibility(g.id)}
+            <div className="task-list">
+        {activeTasks.length === 0 ? (
+          <div className="bos-liste-notu">Aktif görev yok.</div>
+        ) : (
+          <AnimatePresence>
+            {activeTasks.map(g => (
+              <motion.div 
+                layout
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 25, scale: 0.95 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+                key={g.id} 
+                className="task" 
+                style={{ borderLeft: `4px solid ${urgencyColors[g.aciliyet || 'orta']}` }}
               >
-                {simgesi("🏠")}
-              </button>
-              <button className="gorev-sil" onClick={() => deleteTask(g.id)}>{simgesi("🗑️")}</button>
-            </div>
+                <input 
+                  type="checkbox" 
+                  checked={g.tamamlandi} 
+                  onChange={() => toggleTask(g.id)} 
+                />
+                <div className="task-metin">
+                  <h3>{g.metin}</h3>
+                </div>
+                <button 
+                  type="button" 
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', opacity: g.anaSayfadaGoster ? 1 : 0.3 }}
+                  title={g.anaSayfadaGoster ? "Ana sayfada gösteriliyor" : "Ana sayfada gizli"}
+                  onClick={() => toggleTaskHomeVisibility(g.id)}
+                >
+                  {simgesi("🏠")}
+                </button>
+                <button className="gorev-sil" onClick={() => deleteTask(g.id)}>{simgesi("🗑️")}</button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
+      </div>
           ))
         )}
       </div>

@@ -12,6 +12,7 @@ import { Pomodoro } from './components/dashboard/Pomodoro';
 import { DersModule } from './components/lessons/DersModule';
 import { WorkModule } from './components/work/WorkModule';
 import { SettingsModule } from './components/settings/SettingsModule';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function App() {
   const { 
@@ -432,67 +433,87 @@ export default function App() {
            {/* Dinamik Widget Grid Alanı */}
             {!isDersSubPage && (
               activeWidgets.length === 0 ? (
-                <div className="bos-durum-notu" style={{ padding: '50px 20px', background: 'var(--renk-yuzey)', border: '2px dashed var(--renk-kenarlik)', borderRadius: '24px', margin: '16px 0' }}>
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bos-durum-notu" 
+                  style={{ padding: '50px 20px', background: 'var(--renk-yuzey)', border: '2px dashed var(--renk-kenarlik)', borderRadius: '24px', margin: '16px 0' }}
+                >
                   <p style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '600' }}>Bu sekmede widget bulunmuyor. Dilediğin widget'ları ekleyerek başlayabilirsin.</p>
                   <button type="button" className="ders-buyuk-buton" onClick={() => setShowAddModal(true)}>+ Widget Ekle</button>
-                </div>
+                </motion.div>
               ) : (
-                <div className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''}`} style={{ marginTop: '16px' }}>
-                  {activeWidgets.map((w, index) => {
-                    const widgetInfo = ALL_WIDGETS.find(aw => aw.id === w.id);
-                    return (
-                      <div
-                        key={w.id}
-                        className="widget-kutu"
-                        draggable={isEditMode}
-                        onDragStart={() => setDraggedWidgetId(w.id)}
-                        onDragOver={(e) => e.preventDefault()}
-                        onDrop={() => {
-                          const fromIndex = activeWidgets.findIndex(item => item.id === draggedWidgetId);
-                          reorderWidgets(currentTabId, fromIndex, index);
-                          setDraggedWidgetId(null);
-                        }}
-                        style={{ gridColumn: `span ${Math.min(4, w.genislik || 2)}` }}
-                      >
-                        {isEditMode && (
-                          <div className="widget-arac-cubugu">
-                            <div className="widget-arac-sol">
-                              <span className="widget-surukle" title="Taşı">⠿</span>
-                              <span className="widget-arac-baslik">
-                                {simgesi(widgetInfo?.ikon)} {widgetInfo?.baslik}
-                              </span>
-                            </div>
-                            <div className="widget-arac-sag">
-                              <div className="widget-boyut-grubu">
-                                {[1, 2, 3, 4].map(size => (
-                                  <button 
-                                    key={size} 
-                                    type="button" 
-                                    className={`widget-boyut-btn ${w.genislik === size ? 'aktif' : ''}`} 
-                                    onClick={() => updateWidgetWidth(currentTabId, w.id, size)}
-                                  >
-                                    {size === 4 ? 'Tam' : `${size}s`}
-                                  </button>
-                                ))}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentTabId}
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''}`}
+                    style={{ marginTop: '16px' }}
+                  >
+                    {activeWidgets.map((w, index) => {
+                      const widgetInfo = ALL_WIDGETS.find(aw => aw.id === w.id);
+                      return (
+                        <motion.div
+                          layout
+                          transition={{
+                            layout: { duration: 0.26, ease: [0.16, 1, 0.3, 1] },
+                            opacity: { duration: 0.2 }
+                          }}
+                          key={w.id}
+                          className="widget-kutu"
+                          draggable={isEditMode}
+                          onDragStart={() => setDraggedWidgetId(w.id)}
+                          onDragOver={(e) => e.preventDefault()}
+                          onDrop={() => {
+                            const fromIndex = activeWidgets.findIndex(item => item.id === draggedWidgetId);
+                            reorderWidgets(currentTabId, fromIndex, index);
+                            setDraggedWidgetId(null);
+                          }}
+                          style={{ gridColumn: `span ${Math.min(4, w.genislik || 2)}` }}
+                        >
+                          {isEditMode && (
+                            <div className="widget-arac-cubugu">
+                              <div className="widget-arac-sol">
+                                <span className="widget-surukle" title="Taşı">⠿</span>
+                                <span className="widget-arac-baslik">
+                                  {simgesi(widgetInfo?.ikon)} {widgetInfo?.baslik}
+                                </span>
                               </div>
-                              <button 
-                                type="button" 
-                                className="widget-gizle-btn" 
-                                onClick={() => toggleWidgetVisibility(currentTabId, w.id)}
-                                title="Gizle"
-                              >
-                                ✕
-                              </button>
+                              <div className="widget-arac-sag">
+                                <div className="widget-boyut-grubu">
+                                  {[1, 2, 3, 4].map(size => (
+                                    <button 
+                                      key={size} 
+                                      type="button" 
+                                      className={`widget-boyut-btn ${w.genislik === size ? 'aktif' : ''}`} 
+                                      onClick={() => updateWidgetWidth(currentTabId, w.id, size)}
+                                    >
+                                      {size === 4 ? 'Tam' : `${size}s`}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button 
+                                  type="button" 
+                                  className="widget-gizle-btn" 
+                                  onClick={() => toggleWidgetVisibility(currentTabId, w.id)}
+                                  title="Gizle"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
+                          )}
+                          <div className="widget-icerik" style={{ padding: isEditMode ? '8px' : '0' }}>
+                            {renderWidgetContent(w.id)}
                           </div>
-                        )}
-                        <div className="widget-icerik" style={{ padding: isEditMode ? '8px' : '0' }}>
-                          {renderWidgetContent(w.id)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                        </motion.div>
+                      );
+                    })}
+                  </motion.div>
+                </AnimatePresence>
               )
             )}
           </div>

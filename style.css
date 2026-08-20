@@ -4817,3 +4817,38 @@ body.koyu-tema .widget-ekle-oge:hover {
     color: var(--renk-tehlike);
     background-color: var(--renk-tehlike-yuzey);
 }
+
+/* ==========================================================
+   GLASSMORPHISM, BLUR & GLOW EFEKTLERİ
+   ========================================================== */
+
+/* Buzlu cam üst bar ve yan menü */
+.global-ust-bar {
+    background-color: color-mix(in srgb, var(--renk-zemin) 80%, transparent) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.yan-menu {
+    background-color: color-mix(in srgb, var(--renk-sidebar) 85%, transparent) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Kartlarda İnce Yarı Saydam Kenarlık ve Glow (Parlama) Hover */
+.widget-kutu,
+.dashboard-card,
+.ders-karti,
+.gunluk-ozet-kutu {
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease !important;
+}
+
+.widget-kutu:hover,
+.dashboard-card:hover {
+    border-color: color-mix(in srgb, var(--renk-vurgu) 40%, transparent) !important;
+    box-shadow: 0 8px 32px -4px color-mix(in srgb, var(--renk-vurgu) 15%, transparent),
+                0 0 0 1px color-mix(in srgb, var(--renk-vurgu) 20%, transparent) !important;
+}
