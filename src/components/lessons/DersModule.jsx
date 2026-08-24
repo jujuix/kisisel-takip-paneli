@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { KONU_DURUMLARI, YANLIS_SEBEPLERI } from '../../constants';
+import { KONU_DURUMLARI, YANLIS_SEBEPLERI, MONTH_NAMES, GUN_ADLARI } from '../../constants';
 import { CustomSelect } from '../ui/CustomSelect';
 import { CustomDatePicker } from '../ui/CustomDatePicker';
 
@@ -328,18 +328,63 @@ export const YanlisArsivWidget = () => {
 // --- 7. ÇALIŞMA TAKVİM WIDGET ---
 export const CalismaTakvimWidget = () => {
   const { dersData, setDersData } = useApp();
+  const [displayDate, setDisplayDate] = useState(() => new Date());
+  const year = displayDate.getFullYear();
+  const month = displayDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const monthDays = Array.from({ length: daysInMonth }, (_, index) => index + 1);
+  const workedCount = monthDays.filter(day => dersData.calismaGunleri?.[`${monthPrefix}-${String(day).padStart(2, '0')}`]).length;
+
+  const changeMonth = (offset) => {
+    setDisplayDate(new Date(year, month + offset, 1));
+  };
+
+  const toggleDay = (day) => {
+    const dateKey = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+    setDersData(prev => ({
+      ...prev,
+      calismaGunleri: { ...prev.calismaGunleri, [dateKey]: !prev.calismaGunleri?.[dateKey] }
+    }));
+  };
+
   return (
-    <div className="heatmap-grid" style={{ marginTop: '14px' }}>
-      {Array.from({ length: 30 }).map((_, i) => {
-        const day = i + 1;
-        const dStr = `2026-08-${String(day).padStart(2, '0')}`;
-        const isWorked = !!dersData.calismaGunleri?.[dStr];
-        return (
-          <div key={day} className={`heatmap-gun ${isWorked ? 'dolu' : ''}`} title={dStr}
-            onClick={() => setDersData(prev => ({ ...prev, calismaGunleri: { ...prev.calismaGunleri, [dStr]: !isWorked } }))}
-          />
-        );
-      })}
+    <div className="calisma-takvim">
+      <div className="calisma-takvim-ust">
+        <button type="button" onClick={() => changeMonth(-1)} aria-label="Önceki ay">‹</button>
+        <div>
+          <strong>{MONTH_NAMES[month]} {year}</strong>
+          <span>{workedCount} gün çalışıldı</span>
+        </div>
+        <button type="button" onClick={() => changeMonth(1)} aria-label="Sonraki ay">›</button>
+      </div>
+      <div className="calisma-takvim-hafta">
+        {GUN_ADLARI.map(dayName => <span key={dayName}>{dayName}</span>)}
+      </div>
+      <div className="heatmap-grid calisma-takvim-grid">
+        {Array.from({ length: firstDay }).map((_, index) => <div className="heatmap-gun bos-hucre" key={`empty-${index}`} />)}
+        {monthDays.map(day => {
+          const dateKey = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+          const isWorked = !!dersData.calismaGunleri?.[dateKey];
+          const isToday = dateKey === new Date().toISOString().split('T')[0];
+          return (
+            <button
+              type="button"
+              key={dateKey}
+              className={`heatmap-gun ${isWorked ? 'dolu' : ''} ${isToday ? 'bugun' : ''}`}
+              title={`${dateKey}: ${isWorked ? 'Çalışıldı' : 'Çalışılmadı'}`}
+              onClick={() => toggleDay(day)}
+            >
+              <span>{day}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="calisma-takvim-aciklama">
+        <span><i className="bos-renk" /> Çalışılmadı</span>
+        <span><i className="dolu-renk" /> Çalışıldı</span>
+      </div>
     </div>
   );
 };
