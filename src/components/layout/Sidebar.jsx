@@ -4,6 +4,7 @@ import { useApp } from '../../context/AppContext';
 export const Sidebar = ({ onOpenAvatarModal }) => {
   const { activePage, setActivePage, userName, userAvatar, showPrompt, simgesi } = useApp();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const getAvatarDisplay = () => {
     if (userAvatar?.tip === 'gorsel') return <img src={userAvatar.deger} alt="Avatar" />;
@@ -23,8 +24,29 @@ export const Sidebar = ({ onOpenAvatarModal }) => {
     });
   };
 
+  const handlePageSelect = (page) => {
+    setActivePage(page);
+    setIsMobileOpen(false);
+  };
+
   return (
     <>
+      {!isMobileOpen && (
+        <button
+          type="button"
+          className="mobil-menu-btn"
+          onClick={() => setIsMobileOpen(true)}
+          aria-label="Menüyü aç"
+          title="Menüyü aç"
+        >
+          <svg className="ikon" viewBox="0 0 24 24" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+      )}
+      {isMobileOpen && <button type="button" className="mobil-menu-overlay" onClick={() => setIsMobileOpen(false)} aria-label="Menüyü kapat" />}
       {isCollapsed && (
         <button 
           type="button" 
@@ -35,7 +57,7 @@ export const Sidebar = ({ onOpenAvatarModal }) => {
           {simgesi("📋")}
         </button>
       )}
-      <nav className={`yan-menu ${isCollapsed ? 'dar' : ''}`}>
+      <nav className={`yan-menu ${isCollapsed ? 'dar' : ''} ${isMobileOpen ? 'mobil-acik' : ''}`}>
         <div className="yan-menu-ust">
           <div className="yan-menu-marka">
             <button 
@@ -62,19 +84,19 @@ export const Sidebar = ({ onOpenAvatarModal }) => {
         </div>
 
         <div className="yan-menu-ogeler">
-          <button className={`yan-menu-oge ${activePage === 'ana' ? 'aktif' : ''}`} onClick={() => setActivePage('ana')}>
+          <button className={`yan-menu-oge ${activePage === 'ana' ? 'aktif' : ''}`} onClick={() => handlePageSelect('ana')}>
             <span className="yan-menu-ikon">{simgesi("🏠")}</span>
             <span className="yan-menu-etiket">Panel</span>
           </button>
-          <button className={`yan-menu-oge ${activePage === 'ders' ? 'aktif' : ''}`} onClick={() => setActivePage('ders')}>
+          <button className={`yan-menu-oge ${activePage === 'ders' ? 'aktif' : ''}`} onClick={() => handlePageSelect('ders')}>
             <span className="yan-menu-ikon">{simgesi("📚")}</span>
             <span className="yan-menu-etiket">Ders</span>
           </button>
-          <button className={`yan-menu-oge ${activePage === 'is' ? 'aktif' : ''}`} onClick={() => setActivePage('is')}>
+          <button className={`yan-menu-oge ${activePage === 'is' ? 'aktif' : ''}`} onClick={() => handlePageSelect('is')}>
             <span className="yan-menu-ikon">{simgesi("💼")}</span>
             <span className="yan-menu-etiket">İş</span>
           </button>
-          <button className={`yan-menu-oge ${activePage === 'ayarlar' ? 'aktif' : ''}`} onClick={() => setActivePage('ayarlar')}>
+          <button className={`yan-menu-oge ${activePage === 'ayarlar' ? 'aktif' : ''}`} onClick={() => handlePageSelect('ayarlar')}>
             <span className="yan-menu-ikon">{simgesi("⚙️")}</span>
             <span className="yan-menu-etiket">Ayarlar</span>
           </button>
