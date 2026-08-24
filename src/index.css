@@ -5100,6 +5100,35 @@ input[type="number"] {
 
 /* WIDGET GRID - MOBİL KESİN ÇÖZÜM */
 @media (max-width: 768px) {
+    .dinamik-sekme-bar {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .dinamik-sekme-bar .dinamik-sekmeler-alani {
+        flex: 1 1 auto;
+        min-width: 0;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 14px;
+        scrollbar-width: thin;
+    }
+
+    .dinamik-sekme-bar .ders-sekme-btn {
+        flex: 0 0 auto;
+        min-width: max-content;
+        padding: 8px 2px;
+    }
+
+    .dinamik-sekme-bar .yeni-sekme-ekle-btn {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
     .widget-grid {
         grid-template-columns: minmax(0, 1fr) !important;
     }
