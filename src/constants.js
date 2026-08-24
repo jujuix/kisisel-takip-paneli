@@ -115,7 +115,8 @@ export const ALL_WIDGETS = [
   { id: "is-kanban", baslik: "Kanban Panosu", ikon: "📋", kategori: "İş & Proje", varsayilanGenislik: 4 },
   { id: "bugun-odak", baslik: "Bugün Odak", ikon: "📌", kategori: "İş & Proje", varsayilanGenislik: 2 },
   { id: "proje-fikirleri", baslik: "Proje Fikirleri", ikon: "💡", kategori: "İş & Proje", varsayilanGenislik: 2 },
-  { id: "hizli-baglantilar", baslik: "Hızlı Bağlantılar", ikon: "🔗", kategori: "İş & Proje", varsayilanGenislik: 4}
+  { id: "hizli-baglantilar", baslik: "Hızlı Bağlantılar", ikon: "🔗", kategori: "İş & Proje", varsayilanGenislik: 4 },
+  { id: "youtube-kurs", baslik: "YouTube Kurs Takibi", ikon: "🎬", kategori: "Ders & Sınav", varsayilanGenislik: 4 }
 ];
 
 export const SINAV_MUFREDATLARI = {
@@ -244,4 +245,14 @@ export const createCurriculum = (kod) => {
       tekrarGecmisi: []
     }))
   }));
+};
+
+export const getNextExamDate = (dateValue) => {
+  if (!dateValue) return '';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateValue;
+  while (date < today) date.setFullYear(date.getFullYear() + 1);
+  return date.toISOString().split('T')[0];
 };

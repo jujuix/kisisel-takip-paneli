@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createCurriculum, VEKTOR_IKONLAR, ALL_WIDGETS, SINAV_MUFREDATLARI } from '../constants';
+import { createCurriculum, VEKTOR_IKONLAR, ALL_WIDGETS, SINAV_MUFREDATLARI, getNextExamDate } from '../constants';
 
 const AppContext = createContext();
 
@@ -181,9 +181,13 @@ export const AppProvider = ({ children }) => {
   const [dersData, setDersData] = useState(() => {
     try {
       const s = localStorage.getItem('dersPaneliVerisi');
-      return s ? JSON.parse(s) : {
+      if (s) {
+        const saved = JSON.parse(s);
+        return { ...saved, sinavTarihi: getNextExamDate(saved.sinavTarihi) };
+      }
+      return {
         sinavTuru: "kpss_ortaogretim",
-        sinavTarihi: SINAV_MUFREDATLARI.kpss_ortaogretim.varsayilanTarih,
+        sinavTarihi: getNextExamDate(SINAV_MUFREDATLARI.kpss_ortaogretim.varsayilanTarih),
         dersler: createCurriculum("kpss_ortaogretim"),
         denemeler: [],
         yanlislar: [],
@@ -194,7 +198,7 @@ export const AppProvider = ({ children }) => {
     } catch(e) {
       return {
         sinavTuru: "kpss_ortaogretim",
-        sinavTarihi: "2026-10-04",
+        sinavTarihi: getNextExamDate("2026-10-04"),
         dersler: createCurriculum("kpss_ortaogretim"),
         denemeler: [],
         yanlislar: [],
@@ -259,7 +263,7 @@ export const AppProvider = ({ children }) => {
         setDersData(prev => ({
           ...prev,
           sinavTuru: examCode,
-          sinavTarihi: examInfo.varsayilanTarih,
+          sinavTarihi: getNextExamDate(examInfo.varsayilanTarih),
           dersler: createCurriculum(examCode)
         }));
       }

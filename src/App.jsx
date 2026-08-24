@@ -21,6 +21,7 @@ import { CustomDatePicker } from './components/ui/CustomDatePicker';
 import { BugunOdakWidget } from "./components/work/BugunOdakWidget";
 import { ProjeFikirleriWidget } from "./components/work/ProjeFikirleriWidget";
 import { HizliBaglantilarWidget } from "./components/work/HizliBaglantilarWidget";
+import { YoutubeKursWidget } from './components/dashboard/YoutubeKursWidget';
 
 
 export default function App() {
@@ -185,6 +186,8 @@ const today = new Date();
     switch (id) {
       case "hizli-baglantilar": 
         return <HizliBaglantilarWidget />;
+      case "youtube-kurs":
+        return <YoutubeKursWidget />;
       case "proje-fikirleri": 
         return <ProjeFikirleriWidget />;
       case "bugun-odak":

@@ -13,6 +13,7 @@ import { BugunOdakWidget } from './work/BugunOdakWidget';
 import { HizliBaglantilarWidget } from './work/HizliBaglantilarWidget';
 import { ProjeFikirleriWidget } from './work/ProjeFikirleriWidget';
 import { WorkKanbanWidget } from './work/WorkKanbanWidget';
+import { YoutubeKursWidget } from './dashboard/YoutubeKursWidget';
 
 // SİSTEMDEKİ TÜM WIDGET'LARIN BAĞLANTI HARİTASI
 export const WIDGET_COMPONENTS = {
@@ -28,4 +29,5 @@ export const WIDGET_COMPONENTS = {
   "bugun-odak": BugunOdakWidget,
   "proje-fikirleri": ProjeFikirleriWidget,
   "hizli-baglantilar": HizliBaglantilarWidget,
+  "youtube-kurs": YoutubeKursWidget,
 };

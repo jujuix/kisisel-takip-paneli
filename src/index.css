@@ -4782,6 +4782,80 @@ body.koyu-tema .global-arama input:focus {
     box-shadow: 0 0 0 2px var(--renk-vurgu-halka);
 }
 
+.youtube-kurs-widget {
+    width: 100%;
+}
+
+.youtube-kurs-form {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(150px, 1fr) auto;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.youtube-kurs-form button:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.youtube-kurs-mesaj {
+    margin: 8px 0 12px;
+    color: var(--renk-metin-ikincil);
+    font-size: var(--yazi-kucuk);
+}
+
+.youtube-kurs-ders {
+    margin-top: 14px;
+    border: 1px solid var(--renk-kenarlik);
+    border-radius: var(--radius-orta);
+    overflow: hidden;
+}
+
+.youtube-kurs-ders h3 {
+    margin: 0;
+    padding: 10px 12px;
+    color: var(--renk-metin);
+    background: var(--renk-yuzey-muted);
+    font-size: var(--yazi-taban);
+}
+
+.youtube-kurs-video {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 78px 130px;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--renk-kenarlik);
+}
+
+.youtube-kurs-video-baslik {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--renk-metin);
+    font-size: var(--yazi-kucuk);
+}
+
+.youtube-kurs-video input,
+.youtube-kurs-video select {
+    width: 100%;
+    min-width: 0;
+    padding: 6px 8px;
+    font-size: var(--yazi-kucuk);
+}
+
+@media (max-width: 700px) {
+    .youtube-kurs-form,
+    .youtube-kurs-video {
+        grid-template-columns: 1fr;
+    }
+
+    .youtube-kurs-video-baslik {
+        white-space: normal;
+    }
+}
+
 
 .widget-ekle-listesi {
     display: flex;
