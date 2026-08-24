@@ -440,6 +440,19 @@ const today = new Date();
       case "konular-panel": return <KonularWidget />;
       case "deneme-ekle": return <DenemeEkleWidget />;
       case "deneme-gecmisi": return <DenemeGecmisiWidget />;
+      case "deneme-istatistikler":
+        return (
+          <div>
+            <div className="section-header"><h2>{simgesi("📊")} Deneme İstatistikleri</h2></div>
+            {(dersData.denemeler || []).length === 0 ? <p className="bos-durum-notu">Henüz deneme kaydı yok.</p> : (
+              <div className="konu-ozet-grid">
+                <div className="konu-ozet-kutu"><div className="konu-ozet-deger">{dersData.denemeler.length}</div><div className="konu-ozet-etiket">Toplam Deneme</div></div>
+                <div className="konu-ozet-kutu"><div className="konu-ozet-deger">{Math.max(...dersData.denemeler.map(exam => exam.toplamNet)).toFixed(2)}</div><div className="konu-ozet-etiket">En Yüksek Net</div></div>
+                <div className="konu-ozet-kutu"><div className="konu-ozet-deger">{(dersData.denemeler.reduce((sum, exam) => sum + exam.toplamNet, 0) / dersData.denemeler.length).toFixed(2)}</div><div className="konu-ozet-etiket">Ortalama Net</div></div>
+              </div>
+            )}
+          </div>
+        );
       case "yanlis-analiz": return <YanlisAnalizWidget />;
       case "yanlis-ekle": return <YanlisEkleWidget />;
       case "yanlis-arsiv": return <YanlisArsivWidget />;

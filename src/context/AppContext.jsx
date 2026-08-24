@@ -82,7 +82,13 @@ export const AppProvider = ({ children }) => {
   const [tabs, setTabs] = useState(() => {
     try {
       const s = localStorage.getItem('dinamikSekmeler_v2');
-      return s ? JSON.parse(s) : defaultTabs;
+      const saved = s ? JSON.parse(s) : {};
+      return Object.keys(defaultTabs).reduce((allTabs, pageId) => ({
+        ...allTabs,
+        [pageId]: Array.isArray(saved[pageId]) && saved[pageId].length > 0
+          ? saved[pageId]
+          : defaultTabs[pageId]
+      }), { ...saved });
     } catch(e) {
       return defaultTabs;
     }
@@ -138,7 +144,13 @@ export const AppProvider = ({ children }) => {
   const [widgetLayouts, setWidgetLayouts] = useState(() => {
     try {
       const s = localStorage.getItem('widgetDuzenleri_v5');
-      return s ? JSON.parse(s) : defaultWidgets;
+      const saved = s ? JSON.parse(s) : {};
+      return Object.keys(defaultWidgets).reduce((layouts, panelId) => ({
+        ...layouts,
+        [panelId]: Array.isArray(saved[panelId]) && saved[panelId].length > 0
+          ? saved[panelId]
+          : defaultWidgets[panelId]
+      }), { ...saved });
     } catch(e) {
       return defaultWidgets;
     }

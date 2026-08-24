@@ -3258,13 +3258,37 @@ border-radius: var(--radius-hap);
 .heatmap-gun {
     aspect-ratio: 1;
     border-radius: 5px;
-    background-color: #e5e7eb;
+    border: 1px solid var(--renk-kenarlik);
+    background-color: var(--renk-yuzey-alt);
     cursor: pointer;
 }
 
 .heatmap-gun.dolu {
     background-color: var(--renk-basari);
+    border-color: var(--renk-basari);
 }
+
+.heatmap-gun.bugun {
+    box-shadow: 0 0 0 2px var(--renk-vurgu);
+}
+
+.calisma-takvim { width: 100%; max-width: 420px; margin: 14px auto 0; }
+.calisma-takvim-ust { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.calisma-takvim-ust > div { display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--renk-metin); }
+.calisma-takvim-ust strong { font-size: var(--yazi-orta); }
+.calisma-takvim-ust span { color: var(--renk-metin-ikincil); font-size: var(--yazi-mikro); }
+.calisma-takvim-ust button { width: 32px; height: 32px; border: 1px solid var(--renk-kenarlik); border-radius: 50%; background: var(--renk-yuzey-alt); color: var(--renk-metin); cursor: pointer; font-size: 22px; line-height: 1; }
+.calisma-takvim-ust button:hover { color: var(--renk-vurgu); border-color: var(--renk-vurgu); }
+.calisma-takvim-hafta { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 5px; text-align: center; color: var(--renk-metin-ikincil); font-size: var(--yazi-mikro); font-weight: 600; }
+.calisma-takvim-grid { max-width: none; margin: 0; }
+.calisma-takvim-grid .heatmap-gun { width: 100%; padding: 0; aspect-ratio: 1; color: var(--renk-metin); font: inherit; }
+.calisma-takvim-grid .heatmap-gun span { font-size: var(--yazi-kucuk); }
+.calisma-takvim-grid .heatmap-gun.dolu { color: #fff; }
+.calisma-takvim-aciklama { display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px; color: var(--renk-metin-ikincil); font-size: var(--yazi-mikro); }
+.calisma-takvim-aciklama span { display: inline-flex; align-items: center; gap: 4px; }
+.calisma-takvim-aciklama i { width: 9px; height: 9px; display: inline-block; border-radius: 3px; border: 1px solid var(--renk-kenarlik); }
+.calisma-takvim-aciklama .bos-renk { background: var(--renk-yuzey-alt); }
+.calisma-takvim-aciklama .dolu-renk { background: var(--renk-basari); border-color: var(--renk-basari); }
 
 .heatmap-gun.bos-hucre {
     background: transparent;

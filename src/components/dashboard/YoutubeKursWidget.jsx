@@ -17,6 +17,7 @@ export const YoutubeKursWidget = () => {
   const { dersData, setDersData, simgesi } = useApp();
   const [playlistUrl, setPlaylistUrl] = useState('');
   const [selectedLessonId, setSelectedLessonId] = useState(dersData.dersler?.[0]?.id || '');
+  const [newLessonName, setNewLessonName] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -34,19 +35,22 @@ export const YoutubeKursWidget = () => {
     setStatusMessage('Video başlıkları alınıyor...');
     try {
       const response = await fetch(`/api/youtube-playlist?playlistId=${encodeURIComponent(playlistId)}`);
-      if (!response.ok) throw new Error('Playlist alınamadı');
       const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Playlist alınamadı');
       if (!result.videos?.length) throw new Error('Playlist boş veya erişilemiyor');
 
       const videos = result.videos.map(video => ({
         id: video.id || createId('video'),
         title: video.title || 'Başlıksız video',
         durationHours: 0,
-        status: 'baslanmadi'
+        status: 'baslanmadi',
+        durationHours: Number((video.durationSeconds / 3600).toFixed(2))
       }));
 
       setDersData(previous => {
-        const lesson = previous.dersler.find(item => item.id === selectedLessonId);
+        const sourceLesson = previous.dersler.find(item => item.id === selectedLessonId);
+        const lessonName = newLessonName.trim() || `${sourceLesson?.ad || 'Ders'} - Video Kursu`;
+        const lesson = { id: createId('ders'), ad: lessonName, konular: [] };
         if (!lesson) return previous;
         const existingTitles = new Set(lesson.konular.map(topic => topic.ad));
         const newVideos = videos.filter(video => !existingTitles.has(video.title));
@@ -59,7 +63,7 @@ export const YoutubeKursWidget = () => {
           tekrarTarihi: null,
           tekrarGecmisi: [],
           youtubeVideoId: video.id,
-          videoSuresi: 0
+          videoSuresi: video.durationHours
         }));
         const course = {
           id: createId('kurs'),
@@ -71,14 +75,15 @@ export const YoutubeKursWidget = () => {
         };
         return {
           ...previous,
-          dersler: previous.dersler.map(item => item.id === selectedLessonId ? { ...item, konular: [...item.konular, ...newTopics] } : item),
-          youtubeKurslari: [...(previous.youtubeKurslari || []), course]
+          dersler: [...previous.dersler, { ...lesson, konular: newTopics }],
+          youtubeKurslari: [...(previous.youtubeKurslari || []), { ...course, dersId: lesson.id }]
         };
       });
       setPlaylistUrl('');
+      setNewLessonName('');
       setStatusMessage(`${videos.length} video bulundu. Yeni videolar seçilen derse konu olarak eklendi.`);
-    } catch {
-      setStatusMessage('Playlist okunamadı. Bağlantının herkese açık olduğundan emin ol.');
+    } catch (error) {
+      setStatusMessage(error.message || 'Playlist okunamadı.');
     } finally {
       setLoading(false);
     }
@@ -115,6 +120,7 @@ export const YoutubeKursWidget = () => {
           <option value="">Ders seç...</option>
           {(dersData.dersler || []).map(lesson => <option key={lesson.id} value={lesson.id}>{lesson.ad}</option>)}
         </select>
+          <input type="text" value={newLessonName} onChange={event => setNewLessonName(event.target.value)} placeholder="Yeni ders (örn. Matematik - Video Kursu)" />
         <button className="ders-buyuk-buton" type="submit" disabled={loading}>{loading ? 'Alınıyor...' : 'Videoları Getir'}</button>
       </form>
       {statusMessage && <p className="youtube-kurs-mesaj">{statusMessage}</p>}
