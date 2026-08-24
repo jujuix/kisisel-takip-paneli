@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { EMOJI_HAVUZU } from '../../constants';
 
 const DEFAULT_LINKS = [
   { id: 'hl_chatgpt', name: 'ChatGPT', icon: '🤖', url: 'https://chat.openai.com' },
@@ -46,7 +47,14 @@ export const HizliBaglantilarWidget = () => {
       {isFormOpen && (
         <form className="hizli-baglanti-form" onSubmit={handleSubmit}>
           <input type="text" placeholder="Bağlantı adı" value={form.name} onChange={event => setForm(prev => ({ ...prev, name: event.target.value }))} autoFocus />
-          <input type="text" placeholder="Emoji veya ikon (örn. 🔗)" value={form.icon} onChange={event => setForm(prev => ({ ...prev, icon: event.target.value }))} />
+          <div className="hizli-baglanti-emoji-secici">
+            <span className="hizli-baglanti-form-etiket">İkon seç</span>
+            <div className="hizli-baglanti-emoji-havuzu">
+              {EMOJI_HAVUZU.map(emoji => (
+                <button key={emoji} type="button" className={form.icon === emoji ? 'aktif' : ''} onClick={() => setForm(prev => ({ ...prev, icon: emoji }))} aria-label={`${emoji} ikonunu seç`}>{simgesi(emoji)}</button>
+              ))}
+            </div>
+          </div>
           <input type="url" placeholder="https://ornek.com" value={form.url} onChange={event => setForm(prev => ({ ...prev, url: event.target.value }))} />
           <div className="hizli-baglanti-form-actions">
             <button type="button" className="ders-ikincil-buton" onClick={() => setIsFormOpen(false)}>Vazgeç</button>

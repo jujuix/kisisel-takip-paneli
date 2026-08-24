@@ -3,6 +3,13 @@ export const MONTH_NAMES = [
   "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
 ];
 
+export const EMOJI_HAVUZU = [
+  "📌", "💼", "📚", "🎯", "🏋️", "🧘", "💰", "🛒", "🏠", "🎨",
+  "🎵", "📷", "✈️", "🍳", "🧹", "🐾", "💻", "📖", "✏️", "🗓️",
+  "⏰", "💡", "🎓", "🩺", "🚗", "🌱", "🎮", "📈", "🧾", "☕",
+  "🧩", "📝", "🔧", "🧪", "🏆", "❤️"
+];
+
 export const GUN_ADLARI = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
 export const KONU_DURUMLARI = [

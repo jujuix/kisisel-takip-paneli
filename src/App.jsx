@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useApp } from './context/AppContext';
-import { getGreetingMessage, ALL_WIDGETS, SINAV_MUFREDATLARI } from './constants';
+import { getGreetingMessage, ALL_WIDGETS, SINAV_MUFREDATLARI, EMOJI_HAVUZU } from './constants';
 import { Sidebar } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
 import { DynamicTabBar } from './components/dashboard/DynamicTabBar';
@@ -35,6 +35,7 @@ export default function App() {
   } = useApp();
 
   const [draggedWidgetId, setDraggedWidgetId] = useState(null);
+  const [dragOverWidgetId, setDragOverWidgetId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -78,6 +79,18 @@ export default function App() {
   // O sekmedeki widget listesi
   const currentLayout = widgetLayouts?.[currentTabId] || [];
   const activeWidgets = currentLayout.filter(w => w.gorunur);
+
+  const moveWidget = (widgetId, direction) => {
+    const layout = widgetLayouts[currentTabId] || [];
+    const visibleWidgets = layout.filter(widget => widget.gorunur);
+    const visibleIndex = visibleWidgets.findIndex(widget => widget.id === widgetId);
+    const targetVisibleIndex = direction === 'up' ? visibleIndex - 1 : visibleIndex + 1;
+    if (visibleIndex === -1 || targetVisibleIndex < 0 || targetVisibleIndex >= visibleWidgets.length) return;
+
+    const startIndex = layout.findIndex(widget => widget.id === widgetId);
+    const targetIndex = layout.findIndex(widget => widget.id === visibleWidgets[targetVisibleIndex].id);
+    reorderWidgets(currentTabId, startIndex, direction === 'up' ? targetIndex : targetIndex + 1);
+  };
 
   const widgetGridRef = useRef(null);
   const widgetRefs = useRef({});
@@ -434,13 +447,6 @@ const today = new Date();
     }
   };
 
-  const emojiHavuzu = [
-    "📌", "💼", "📚", "🎯", "🏋️", "🧘", "💰", "🛒", "🏠", "🎨",
-    "🎵", "📷", "✈️", "🍳", "🧹", "🐾", "💻", "📖", "✏️", "🗓️",
-    "⏰", "💡", "🎓", "🩺", "🚗", "🌱", "🎮", "📈", "🧾", "☕",
-    "🧩", "📝", "🔧", "🧪", "🏆", "❤️"
-  ];
-
   let examCountdown = "Sınav tarihi seçilmedi";
   if (dersData.sinavTarihi) {
     const diff = Math.ceil((new Date(dersData.sinavTarihi) - new Date()) / (1000 * 60 * 60 * 24));
@@ -542,7 +548,7 @@ const today = new Date();
                             opacity: { duration: 0.12 }
                           }}
                           key={w.id}
-                          className={`widget-kutu ${isEditMode ? 'duzenle-modu' : ''}`}
+                          className={`widget-kutu ${isEditMode ? 'duzenle-modu' : ''} ${draggedWidgetId === w.id ? 'surukleniyor' : ''} ${dragOverWidgetId === w.id && draggedWidgetId !== w.id ? 'surukle-hedef' : ''}`}
                           data-genislik={Math.min(6, Math.max(1, w.genislik || 2))}
                           
                           /* ==========================================
@@ -551,7 +557,10 @@ const today = new Date();
                           onDragOver={(e) => {
                             e.preventDefault();
                             e.dataTransfer.dropEffect = "move";
+                            if (draggedWidgetId && draggedWidgetId !== w.id) setDragOverWidgetId(w.id);
                           }}
+
+                          onDragLeave={() => setDragOverWidgetId(null)}
                           
                           onDragEnd={(e) => {
                             e.currentTarget.style.opacity = "1"; // Bırakılınca veya iptal olunca saydamlık düzelir
@@ -576,6 +585,7 @@ const today = new Date();
                             
                             e.currentTarget.style.opacity = "1";
                             setDraggedWidgetId(null);
+                            setDragOverWidgetId(null);
                           }}
                           /* ========================================== */
                         >
@@ -591,12 +601,19 @@ const today = new Date();
                                     e.stopPropagation();
                                     setDraggedWidgetId(w.id);
                                     e.dataTransfer.effectAllowed = "move";
+                                    const preview = document.createElement('div');
+                                    preview.className = 'widget-drag-preview';
+                                    preview.innerHTML = `<span>${widgetInfo?.ikon || '📦'}</span><strong>${widgetInfo?.baslik || 'Widget'}</strong><small>Taşınıyor</small>`;
+                                    document.body.appendChild(preview);
+                                    e.dataTransfer.setDragImage(preview, 18, 22);
+                                    setTimeout(() => preview.remove(), 0);
                                     e.currentTarget.closest('.widget-kutu').style.opacity = '0.4';
                                   }}
                                   onDragEnd={(e) => {
                                     e.stopPropagation();
                                     e.currentTarget.closest('.widget-kutu').style.opacity = '1';
                                     setDraggedWidgetId(null);
+                                    setDragOverWidgetId(null);
                                   }}
                                 >⠿</span>
                                 <span className="widget-arac-baslik">
@@ -604,6 +621,10 @@ const today = new Date();
                                 </span>
                               </div>
                               <div className="widget-arac-sag">
+                                <div className="widget-mobil-siralama" aria-label="Widget sırasını değiştir">
+                                  <button type="button" onClick={() => moveWidget(w.id, 'up')} disabled={activeWidgets[0]?.id === w.id} title="Yukarı taşı" aria-label="Yukarı taşı">↑</button>
+                                  <button type="button" onClick={() => moveWidget(w.id, 'down')} disabled={activeWidgets[activeWidgets.length - 1]?.id === w.id} title="Aşağı taşı" aria-label="Aşağı taşı">↓</button>
+                                </div>
                                 <div className="widget-boyut-grubu">
                                   {[1, 2, 3, 4, 5, 6].map(size => (
                                     <button 
@@ -760,7 +781,7 @@ const today = new Date();
               <div style={{ marginTop: '14px' }}>
                 <label className="modal-label">Veya Emoji Seç</label>
                 <div className="emoji-havuzu">
-                  {emojiHavuzu.map(emoji => (
+                  {EMOJI_HAVUZU.map(emoji => (
                     <button key={emoji} type="button" className="emoji-btn" onClick={() => { setUserAvatar({ tip: 'emoji', deger: emoji }); setShowAvatarModal(false); }}>{emoji}</button>
                   ))}
                 </div>
@@ -794,7 +815,7 @@ const today = new Date();
               <div>
                 <label className="modal-label">Simge seç</label>
                 <div className="emoji-havuzu">
-                  {emojiHavuzu.map(emoji => (
+                  {EMOJI_HAVUZU.map(emoji => (
                     <button key={emoji} type="button" className={`emoji-btn ${newCatIcon === emoji ? 'secili' : ''}`} onClick={() => setNewCatIcon(emoji)}>{emoji}</button>
                   ))}
                 </div>
