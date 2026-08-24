@@ -340,7 +340,18 @@ export const AppProvider = ({ children }) => {
   };
 
   const toggleTask = (taskId) => {
-    setTasks(prev => (prev || []).map(t => t.id === taskId ? { ...t, tamamlandi: !t.tamamlandi } : t));
+    setTasks(prev => (prev || []).map(t => {
+      if (t.id === taskId) {
+        const isNowCompleted = !t.tamamlandi;
+        return { 
+          ...t, 
+          tamamlandi: isNowCompleted,
+          // Senkronizasyon sihri burada:
+          status: isNowCompleted ? 'bitti' : (t.status === 'bitti' ? 'bekliyor' : t.status)
+        };
+      }
+      return t;
+    }));
   };
 
   const deleteTask = (taskId) => {
@@ -351,8 +362,15 @@ export const AppProvider = ({ children }) => {
     setTasks(prev => (prev || []).map(t => t.id === taskId ? { ...t, anaSayfadaGoster: !t.anaSayfadaGoster } : t));
   };
 
+  const updateTask = (id, updatedFields) => {
+    setTasks(prev => prev.map(t => 
+      t.id === id ? { ...t, ...updatedFields } : t
+    ));
+  };
+
   return (
     <AppContext.Provider value={{
+      updateTask,
       theme, toggleTheme,
       accentColor, setAccentColor,
       iconStyle, setIconStyle, simgesi,

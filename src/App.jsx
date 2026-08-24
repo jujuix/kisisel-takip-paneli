@@ -17,6 +17,12 @@ import { CustomSelect } from './components/ui/CustomSelect';
 import { CustomTimePicker } from './components/ui/CustomTimePicker';
 import { HabitWeeklyWidget } from './components/dashboard/HabitWeeklyWidget';
 import { HabitMonthlyWidget } from './components/dashboard/HabitMonthlyWidget';
+import { WorkTimelineWidget } from './components/dashboard/WorkTimelineWidget';
+import { WorkKanbanWidget } from './components/work/WorkKanbanWidget';
+import { CustomDatePicker } from './components/ui/CustomDatePicker';
+import { BugunOdakWidget } from "./components/work/BugunOdakWidget";
+import { ProjeFikirleriWidget } from "./components/work/ProjeFikirleriWidget";
+import { HizliBaglantilarWidget } from "./components/work/HizliBaglantilarWidget";
 
 
 export default function App() {
@@ -157,6 +163,16 @@ const today = new Date();
   // Evrensel Widget Render Motoru
   const renderWidgetContent = (id) => {
     switch (id) {
+      case "hizli-baglantilar": 
+        return <HizliBaglantilarWidget />;
+      case "proje-fikirleri": 
+        return <ProjeFikirleriWidget />;
+      case "bugun-odak":
+        return <BugunOdakWidget />
+      case "is-kanban":
+        return <WorkKanbanWidget />;
+      case "is-zaman":
+        return <WorkTimelineWidget />;
       case "aliskanlik-haftalik":
         return <HabitWeeklyWidget />;
       case "aliskanlik-aylik":
@@ -171,13 +187,25 @@ const today = new Date();
           <div>
             <div className="dashboard-ust">
               <div className="aciliyet-filtre-satiri">
-                <button className={`aciliyet-filtre-btn ${globalUrgency === 'hepsi' ? 'aktif' : ''}`} onClick={() => setGlobalUrgency('hepsi')}>Tümü</button>
-                <button className={`aciliyet-filtre-btn ${globalUrgency === 'acil' ? 'aktif' : ''}`} onClick={() => setGlobalUrgency('acil')}>🔴 Acil</button>
-                <button className={`aciliyet-filtre-btn ${globalUrgency === 'orta' ? 'aktif' : ''}`} onClick={() => setGlobalUrgency('orta')}>🟡 Orta</button>
-                <button className={`aciliyet-filtre-btn ${globalUrgency === 'dusuk' ? 'aktif' : ''}`} onClick={() => setGlobalUrgency('dusuk')}>🟢 Düşük</button>
+                <button className={`aciliyet-filtre-btn ${globalUrgency === 'hepsi' ? 'aktif' : ''}`} onClick={() => setGlobalUrgency('hepsi')}>
+                  Tümü
+                </button>
+                <button className={`aciliyet-filtre-btn ${globalUrgency === 'acil' ? 'aktif' : ''}`} onClick={() => setGlobalUrgency('acil')} style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ff6961' }}></span>
+                  Acil
+                </button>
+                <button className={`aciliyet-filtre-btn ${globalUrgency === 'orta' ? 'aktif' : ''}`} onClick={() => setGlobalUrgency('orta')} style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--renk-vurgu)' }}></span>
+                  Orta
+                </button>
+                <button className={`aciliyet-filtre-btn ${globalUrgency === 'dusuk' ? 'aktif' : ''}`} onClick={() => setGlobalUrgency('dusuk')} style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--renk-metin-ikincil)' }}></span>
+                  Düşük
+                </button>
               </div>
               <button className="kategori-ekle-butonu" onClick={() => setShowCategoryModal(true)}>+ Kategori Ekle</button>
             </div>
+            
             <div className="kategoriler-alani" style={{ margin: 0 }}>
               {pageCategories.map(cat => (
                 <TaskCategoryCard key={cat.id} category={cat} sourcePage={activePage} />
@@ -342,8 +370,8 @@ const today = new Date();
             </div>
             <div className="zaman-ekle-formu">
               <input type="text" placeholder="Proje Adı..." value={projName} onChange={e => setProjName(e.target.value)} />
-              <input type="date" value={projStart} onChange={e => setProjStart(e.target.value)} />
-              <input type="date" value={projEnd} onChange={e => setProjEnd(e.target.value)} />
+              <CustomDatePicker value={projStart} onChange={val => setProjStart(val)} />
+<CustomDatePicker value={projEnd} onChange={val => setProjEnd(val)} />
               <button className="ders-buyuk-buton" onClick={() => {
                 if (!projName.trim() || !projStart || !projEnd) return;
                 setIsData(prev => ({ ...prev, projeler: [...(prev.projeler || []), { id: "p_" + Date.now(), ad: projName.trim(), baslangic: projStart, bitis: projEnd }] }));
@@ -442,23 +470,20 @@ const today = new Date();
                 {activePage === 'ders' && (
                   <>
                     <h1 style={{ margin: 0 }}>{simgesi("📚")} Ders Takip</h1>
-                    <select 
-                      className="sinav-turu-select" 
-                      value={dersData.sinavTuru} 
-                      onChange={e => changeExamType(e.target.value)}
-                    >
-                      {Object.keys(SINAV_MUFREDATLARI).map(k => (
-                        <option key={k} value={k}>{SINAV_MUFREDATLARI[k].ad}</option>
-                      ))}
-                    </select>
+                    <CustomSelect 
+  value={dersData.sinavTuru} 
+  onChange={(val) => changeExamType(val)}
+  options={Object.keys(SINAV_MUFREDATLARI).map(k => ({
+    value: k,
+    label: SINAV_MUFREDATLARI[k].ad
+  }))}
+/>
                     <div className="kpss-geri-sayim-satiri" style={{ marginLeft: '8px' }}>
                       <span className="kpss-geri-sayim-metin">{simgesi("⏳")} {examCountdown}</span>
-                      <input 
-                        type="date" 
-                        value={dersData.sinavTarihi || ''} 
-                        onChange={e => setDersData(prev => ({ ...prev, sinavTarihi: e.target.value }))}
-                        style={{ padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--renk-kenarlik)' }}
-                      />
+                      <CustomDatePicker 
+  value={dersData.sinavTarihi || ""} 
+  onChange={val => setDersData(prev => ({ ...prev, sinavTarihi: val }))} 
+/>
                     </div>
                   </>
                 )}

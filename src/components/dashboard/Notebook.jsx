@@ -1,11 +1,26 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const Notebook = () => {
   const { panelData, setPanelData, simgesi } = useApp();
+  
+  // 1. ADIM: Kutuya doğrudan erişebilmek için bir referans oluşturuyoruz
+  const editorRef = useRef(null);
+
+  // 2. ADIM: İçeriği sadece ilk açılışta veya dışarıdan bir veri geldiğinde dolduruyoruz
+  // Bu sayede sen yazarken kutu kendini yenileyip imleci başa fırlatmayacak!
+  useEffect(() => {
+    if (editorRef.current && panelData?.notKagidi !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = panelData?.notKagidi || '';
+    }
+  }, [panelData?.notKagidi]);
 
   const handleCommand = (command) => {
     document.execCommand(command, false, null);
+    // Command çalıştıktan sonra div'in güncel halini kaydet
+    if (editorRef.current) {
+      setPanelData((prev) => ({ ...prev, notKagidi: editorRef.current.innerHTML }));
+    }
   };
 
   const handleInput = (e) => {
@@ -24,12 +39,13 @@ export const Notebook = () => {
         </div>
       </div>
       <div
+        ref={editorRef} // Referansı buraya bağladık
         className="not-kagidi"
         contentEditable
         suppressContentEditableWarning
         data-placeholder="Buraya yazmaya başla..."
         onInput={handleInput}
-        dangerouslySetInnerHTML={{ __html: panelData?.notKagidi || '' }}
+        /* dangerouslySetInnerHTML KALDIRILDI - Artık useEffect yönetiyor */
       />
     </aside>
   );

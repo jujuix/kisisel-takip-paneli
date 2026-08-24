@@ -52,7 +52,11 @@ export const TaskCategoryCard = ({ category, sourcePage = "ana" }) => {
     });
   };
 
-  const urgencyColors = { dusuk: "#9ca3af", orta: "#f59e0b", acil: "#dc2626" };
+  const urgencyColors = { 
+    dusuk: "var(--renk-metin-ikincil)", // Düşük öncelik için temanın soluk rengi
+    orta: "var(--renk-vurgu)",          // Orta öncelik için temanın kendi vurgu rengi (Pembe)
+    acil: "#ff6961"                     // Acil için göz yormayan, karanlık temaya çok yakışan pastel kırmızı
+  };
 
   return (
     <section className="dashboard-card kategori-card">
@@ -127,11 +131,6 @@ export const TaskCategoryCard = ({ category, sourcePage = "ana" }) => {
         {activeTasks.length === 0 ? (
           <div className="bos-liste-notu">Aktif görev yok.</div>
         ) : (
-          activeTasks.map(g => (
-            <div className="task-list">
-        {activeTasks.length === 0 ? (
-          <div className="bos-liste-notu">Aktif görev yok.</div>
-        ) : (
           <AnimatePresence>
             {activeTasks.map(g => (
               <motion.div 
@@ -164,9 +163,6 @@ export const TaskCategoryCard = ({ category, sourcePage = "ana" }) => {
               </motion.div>
             ))}
           </AnimatePresence>
-        )}
-      </div>
-          ))
         )}
       </div>
 

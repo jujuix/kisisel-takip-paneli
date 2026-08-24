@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { KONU_DURUMLARI, YANLIS_SEBEPLERI } from '../../constants';
+import { CustomSelect } from '../ui/CustomSelect';
+import { CustomDatePicker } from '../ui/CustomDatePicker';
 
 // --- 1. KONULAR WIDGET ---
 export const KonularWidget = () => {
@@ -145,7 +147,7 @@ export const DenemeEkleWidget = () => {
     <div className="deneme-formu">
       <div className="gorev-formu-satir">
         <input type="text" placeholder="Deneme Adı..." value={examName} onChange={e => setExamName(e.target.value)} />
-        <input type="date" value={examDate} onChange={e => setExamDate(e.target.value)} />
+        <CustomDatePicker value={examDate} onChange={val => setExamDate(val)} />
       </div>
       <div className="deneme-brans-satirlari" style={{ margin: '10px 0' }}>
         {dersData.dersler.map(d => (
@@ -267,10 +269,14 @@ export const YanlisEkleWidget = () => {
   return (
     <div className="yanlis-formu">
       <div className="gorev-formu-satir">
-        <select value={wrongLesson} onChange={e => setWrongLesson(e.target.value)}>
-          <option value="">Ders Seçiniz...</option>
-          {dersData.dersler.map(d => <option key={d.id} value={d.ad}>{d.ad}</option>)}
-        </select>
+        <CustomSelect 
+          value={wrongLesson} 
+          onChange={(val) => setWrongLesson(val)} 
+          options={[
+            { value: "", label: "Ders Seçiniz..." },
+            ...dersData.dersler.map(d => ({ value: d.ad, label: d.ad }))
+          ]}
+        />
         <input type="text" placeholder="Konu" value={wrongTopic} onChange={e => setWrongTopic(e.target.value)} />
       </div>
       <div className="yanlis-sebep-pilleri" style={{ margin: '8px 0' }}>
@@ -348,7 +354,7 @@ export const HedeflerWidget = () => {
     <div>
       <div className="gorev-formu-satir">
         <input type="text" placeholder="Yeni hedef yaz..." value={goalText} onChange={e => setGoalText(e.target.value)} />
-        <input type="date" value={goalDate} onChange={e => setGoalDate(e.target.value)} />
+        <CustomDatePicker value={goalDate} onChange={val => setGoalDate(val)} />
         <button className="ders-buyuk-buton" onClick={() => {
           if (!goalText.trim()) return;
           setDersData(prev => ({ ...prev, hedefler: [...(prev.hedefler || []), { id: "g_" + Date.now(), metin: goalText.trim(), tarih: goalDate, tamamlandi: false }] }));
