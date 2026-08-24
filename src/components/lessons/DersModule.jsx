@@ -180,6 +180,7 @@ export const DenemeGecmisiWidget = () => {
 
   return (
     <div>
+      <div className="widget-ic-baslik"><h2>{simgesi("📈")} Deneme Geçmişi</h2></div>
       <div className="deneme-listesi">
         {(dersData.denemeler || []).map((ex, idx, arr) => {
           const prev = arr[idx + 1];
@@ -235,7 +236,7 @@ export const DenemeGecmisiWidget = () => {
 
 // --- 4. YANLIŞ ANALİZ WIDGET ---
 export const YanlisAnalizWidget = () => {
-  const { dersData } = useApp();
+  const { dersData, simgesi } = useApp();
   const wrongReasonCounts = {};
   (dersData.yanlislar || []).forEach(y => {
     wrongReasonCounts[y.sebep] = (wrongReasonCounts[y.sebep] || 0) + 1;
@@ -243,6 +244,7 @@ export const YanlisAnalizWidget = () => {
 
   return (
     <div>
+      <div className="widget-ic-baslik"><h2>{simgesi("📊")} Yanlış Analizi</h2></div>
       {Object.keys(wrongReasonCounts).length === 0 && (
         <p className="bos-durum-notu widget-bos-durum">Henüz yanlış soru kaydı yok. Kayıt eklediğinde analiz burada görünecek.</p>
       )}
@@ -310,10 +312,12 @@ export const YanlisEkleWidget = () => {
 
 // --- 6. YANLIŞ ARŞİV WIDGET ---
 export const YanlisArsivWidget = () => {
-  const { dersData, setDersData } = useApp();
+  const { dersData, setDersData, simgesi } = useApp();
   return (
-    <div className="yanlis-grid">
-      {(dersData.yanlislar || []).map(y => (
+    <div>
+      <div className="widget-ic-baslik"><h2>{simgesi("❌")} Yanlış Arşivim</h2></div>
+      <div className="yanlis-grid">
+        {(dersData.yanlislar || []).map(y => (
         <div key={y.id} className="yanlis-karti">
           {y.medya && (y.medyaTip === 'video' ? <video src={y.medya} controls /> : <img src={y.medya} alt="Soru" />)}
           <div className="yanlis-etiket-satiri"><span>{y.ders} · {y.konu}</span><span>{y.tarih}</span></div>
@@ -326,7 +330,11 @@ export const YanlisArsivWidget = () => {
             <button className="gorev-sil" onClick={() => setDersData(prev => ({ ...prev, yanlislar: prev.yanlislar.filter(x => x.id !== y.id) }))}>🗑️</button>
           </div>
         </div>
-      ))}
+        ))}
+        {(dersData.yanlislar || []).length === 0 && (
+          <p className="bos-durum-notu widget-bos-durum">Henüz yanlış soru eklenmedi. Eklediğin sorular burada arşivlenecek.</p>
+        )}
+      </div>
     </div>
   );
 };
