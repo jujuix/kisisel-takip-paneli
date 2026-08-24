@@ -2803,6 +2803,22 @@ border-radius: var(--radius-hap);
     gap: 12px;
 }
 
+.widget-bos-durum {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0 0;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.deneme-istatistik-widget,
+.deneme-listesi,
+.yanlis-sebep-analiz-satiri {
+    min-width: 0;
+}
+
 .deneme-karti {
     cursor: pointer;
     transition: border-color 0.15s ease;

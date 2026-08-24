@@ -201,6 +201,9 @@ export const DenemeGecmisiWidget = () => {
             </div>
           );
         })}
+        {(dersData.denemeler || []).length === 0 && (
+          <p className="bos-durum-notu widget-bos-durum">Henüz deneme kaydı yok. Deneme eklediğinde geçmiş burada görünecek.</p>
+        )}
       </div>
       {examDetailModal && (
         <div className="modal-overlay" onClick={() => setExamDetailModal(null)}>
@@ -240,6 +243,9 @@ export const YanlisAnalizWidget = () => {
 
   return (
     <div>
+      {Object.keys(wrongReasonCounts).length === 0 && (
+        <p className="bos-durum-notu widget-bos-durum">Henüz yanlış soru kaydı yok. Kayıt eklediğinde analiz burada görünecek.</p>
+      )}
       {Object.keys(wrongReasonCounts).map(reason => {
         const count = wrongReasonCounts[reason];
         const percent = Math.round((count / (dersData.yanlislar || []).length) * 100) || 0;

@@ -444,7 +444,7 @@ const today = new Date();
         return (
           <div>
             <div className="section-header"><h2>{simgesi("📊")} Deneme İstatistikleri</h2></div>
-            {(dersData.denemeler || []).length === 0 ? <p className="bos-durum-notu">Henüz deneme kaydı yok.</p> : (
+            {(dersData.denemeler || []).length === 0 ? <p className="bos-durum-notu widget-bos-durum">Henüz deneme kaydı yok. Deneme eklediğinde istatistikler burada görünecek.</p> : (
               <div className="konu-ozet-grid">
                 <div className="konu-ozet-kutu"><div className="konu-ozet-deger">{dersData.denemeler.length}</div><div className="konu-ozet-etiket">Toplam Deneme</div></div>
                 <div className="konu-ozet-kutu"><div className="konu-ozet-deger">{Math.max(...dersData.denemeler.map(exam => exam.toplamNet)).toFixed(2)}</div><div className="konu-ozet-etiket">En Yüksek Net</div></div>
