@@ -4883,6 +4883,29 @@ body.koyu-tema .widget-ekle-oge:hover {
     color: white;
 }
 
+.hizli-baglantilar-widget { width: 100%; padding: 4px; }
+.hizli-baglantilar-baslik, .hizli-baglanti-item, .hizli-baglanti-form-actions { display: flex; align-items: center; }
+.hizli-baglantilar-baslik { justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.hizli-baglantilar-baslik h3 { margin: 0; display: flex; align-items: center; gap: 8px; color: var(--renk-metin); font-size: var(--yazi-baslik-kucuk); }
+.hizli-baglanti-ekle-btn, .hizli-baglanti-islemler button { border: 1px solid var(--renk-kenarlik); background: var(--renk-yuzey-alt); color: var(--renk-metin); cursor: pointer; font-family: inherit; }
+.hizli-baglanti-ekle-btn { padding: 6px 10px; border-radius: var(--radius-orta); white-space: nowrap; }
+.hizli-baglanti-ekle-btn:hover, .hizli-baglanti-islemler button:hover { color: var(--renk-vurgu); border-color: var(--renk-vurgu); }
+.hizli-baglanti-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+.hizli-baglanti-form-actions { grid-column: 1 / -1; justify-content: flex-end; gap: 8px; }
+.hizli-baglantilar-listesi { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.hizli-baglanti-item { min-width: 0; position: relative; background: var(--renk-vurgu-yuzey); border-radius: var(--radius-kucuk); }
+.hizli-baglanti-item > a { min-width: 0; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 4px; color: var(--renk-vurgu); text-decoration: none; }
+.hizli-baglanti-ikon { display: flex; align-items: center; justify-content: center; min-height: 28px; font-size: 24px; }
+.hizli-baglanti-ikon.minimal .ikon { width: 24px; height: 24px; }
+.hizli-baglanti-item > a > span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--yazi-kucuk); font-weight: 600; }
+.hizli-baglanti-islemler { position: absolute; top: 4px; right: 4px; display: flex; gap: 2px; opacity: 0; transition: opacity 0.15s ease; }
+.hizli-baglanti-item:hover .hizli-baglanti-islemler, .hizli-baglanti-item:focus-within .hizli-baglanti-islemler { opacity: 1; }
+.hizli-baglanti-islemler button { width: 22px; height: 22px; padding: 0; border-radius: 6px; font-size: 11px; }
+
+@media (max-width: 700px) {
+    .hizli-baglanti-form, .hizli-baglantilar-listesi { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 /* Dinamik Sekme Stilleri */
 .dinamik-sekme-bar {
     display: flex;
