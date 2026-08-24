@@ -6,6 +6,7 @@ export const SettingsModule = () => {
     theme, toggleTheme, 
     accentColor, setAccentColor, 
     iconStyle, setIconStyle, 
+    uiScale, setUiScale,
     dersData, setDersData, 
     showConfirm 
   } = useApp();
@@ -121,6 +122,23 @@ export const SettingsModule = () => {
           <button type="button" className="tema-butonu" onClick={toggleTheme} style={{ width: 'fit-content' }}>
             {theme === 'koyu' ? '☀️ Açık Tema' : '🌙 Koyu Tema'}
           </button>
+        </div>
+
+        {/* Arayüz ölçeği */}
+        <div className="tema-ayar-grup">
+          <span className="tema-ayar-etiket">Arayüz Boyutu</span>
+          <div className="renk-tema-secici">
+            {[{ value: 0.7, label: 'Küçük (%70)' }, { value: 0.8, label: 'Varsayılan (%80)' }, { value: 0.9, label: 'Büyük (%90)' }].map(option => (
+              <button
+                key={option.value}
+                type="button"
+                className={`renk-tema-secenek ${uiScale === option.value ? 'aktif' : ''}`}
+                onClick={() => setUiScale(option.value)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* SİMGE / İKON GÖRÜNÜMÜ SEÇENEĞİ */}

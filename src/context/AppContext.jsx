@@ -7,6 +7,7 @@ export const AppProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => localStorage.getItem('tema') || 'acik');
   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('renkTemasi') || '#10b981');
   const [iconStyle, setIconStyle] = useState(() => localStorage.getItem('panelIkonStili') || 'emoji');
+  const [uiScale, setUiScale] = useState(() => Number(localStorage.getItem('arayuzOlcegi_v1')) || 0.8);
   
   const [userName, setUserName] = useState(() => localStorage.getItem('panelAdi_v1') || 'Kişisel Panel');
   const [userAvatar, setUserAvatar] = useState(() => {
@@ -223,6 +224,10 @@ export const AppProvider = ({ children }) => {
   }, [accentColor, theme]);
 
   useEffect(() => { localStorage.setItem('panelIkonStili', iconStyle); }, [iconStyle]);
+  useEffect(() => {
+    localStorage.setItem('arayuzOlcegi_v1', String(uiScale));
+    document.body.style.zoom = String(uiScale);
+  }, [uiScale]);
   useEffect(() => { localStorage.setItem('panelAdi_v1', userName); }, [userName]);
   useEffect(() => { localStorage.setItem('panelAvatar_v1', JSON.stringify(userAvatar)); }, [userAvatar]);
   useEffect(() => { localStorage.setItem('dinamikSekmeler_v2', JSON.stringify(tabs)); }, [tabs]);
@@ -301,7 +306,10 @@ export const AppProvider = ({ children }) => {
     setWidgetLayouts(prev => {
       const list = [...(prev?.[panelId] || [])];
       const [removed] = list.splice(startIndex, 1);
-      list.splice(endIndex, 0, removed);
+      let hedefIndex = endIndex;
+      if (startIndex < endIndex) hedefIndex = endIndex - 1;
+      hedefIndex = Math.max(0, Math.min(hedefIndex, list.length));
+      list.splice(hedefIndex, 0, removed);
       return { ...prev, [panelId]: list };
     });
   };
@@ -373,6 +381,7 @@ export const AppProvider = ({ children }) => {
       updateTask,
       theme, toggleTheme,
       accentColor, setAccentColor,
+      uiScale, setUiScale,
       iconStyle, setIconStyle, simgesi,
       userName, setUserName,
       userAvatar, setUserAvatar,

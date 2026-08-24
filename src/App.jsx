@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useApp } from './context/AppContext';
 import { getGreetingMessage, ALL_WIDGETS, SINAV_MUFREDATLARI } from './constants';
 import { Sidebar } from './components/layout/Sidebar';
@@ -10,11 +10,9 @@ import { TaskCategoryCard } from './components/dashboard/TaskCategoryCard';
 import { Notebook } from './components/dashboard/Notebook';
 import { Pomodoro } from './components/dashboard/Pomodoro';
 import { KonularWidget, DenemeEkleWidget, DenemeGecmisiWidget, YanlisAnalizWidget, YanlisEkleWidget, YanlisArsivWidget, CalismaTakvimWidget, HedeflerWidget } from './components/lessons/DersModule';
-import { WorkModule } from './components/work/WorkModule';
 import { SettingsModule } from './components/settings/SettingsModule';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CustomSelect } from './components/ui/CustomSelect';
-import { CustomTimePicker } from './components/ui/CustomTimePicker';
 import { HabitWeeklyWidget } from './components/dashboard/HabitWeeklyWidget';
 import { HabitMonthlyWidget } from './components/dashboard/HabitMonthlyWidget';
 import { WorkTimelineWidget } from './components/dashboard/WorkTimelineWidget';
@@ -80,42 +78,51 @@ export default function App() {
   // O sekmedeki widget listesi
   const currentLayout = widgetLayouts?.[currentTabId] || [];
   const activeWidgets = currentLayout.filter(w => w.gorunur);
-const widgetGridRef = useRef(null);
-const widgetRefs = useRef({});
 
-const MASONRY_ROW_HEIGHT = 8;
-const MASONRY_ROW_GAP = 18;
+  const widgetGridRef = useRef(null);
+  const widgetRefs = useRef({});
+  const masonryRowHeight = 8;
+  const masonryRowGap = 18;
 
-const recalcMasonry = () => {
-  const grid = widgetGridRef.current;
-  if (!grid) return;
-  Object.entries(widgetRefs.current).forEach(([id, el]) => {
-    if (!el) return;
-    const contentHeight = el.scrollHeight;
-    const span = Math.ceil((contentHeight + MASONRY_ROW_GAP) / (MASONRY_ROW_HEIGHT + MASONRY_ROW_GAP));
-    const next = `span ${span}`;
-    if (el.style.gridRowEnd !== next) el.style.gridRowEnd = next;
-  });
-};
+  const recalcMasonry = () => {
+    const grid = widgetGridRef.current;
+    if (!grid) return;
 
-useLayoutEffect(() => {
-  recalcMasonry();
-});
-
-useEffect(() => {
-  let frame = null;
-  const observer = new ResizeObserver(() => {
-    if (frame) cancelAnimationFrame(frame);
-    frame = requestAnimationFrame(recalcMasonry);
-  });
-  Object.values(widgetRefs.current).forEach(el => el && observer.observe(el));
-  window.addEventListener('resize', recalcMasonry);
-  return () => {
-    if (frame) cancelAnimationFrame(frame);
-    observer.disconnect();
-    window.removeEventListener('resize', recalcMasonry);
+    Object.values(widgetRefs.current).forEach(element => {
+      if (!element) return;
+      const rowSpan = Math.max(1, Math.ceil(
+        (element.scrollHeight + masonryRowGap) / (masonryRowHeight + masonryRowGap)
+      ));
+      const nextRowEnd = `span ${rowSpan}`;
+      if (element.style.gridRowEnd !== nextRowEnd) {
+        element.style.gridRowEnd = nextRowEnd;
+      }
+    });
   };
-}, [activeWidgets, currentTabId, isEditMode]);
+
+  useLayoutEffect(() => {
+    recalcMasonry();
+  });
+
+  useEffect(() => {
+    let frameId;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frameId);
+      frameId = requestAnimationFrame(recalcMasonry);
+    });
+
+    Object.values(widgetRefs.current).forEach(element => {
+      if (element) observer.observe(element);
+    });
+    window.addEventListener('resize', recalcMasonry);
+
+    return () => {
+      cancelAnimationFrame(frameId);
+      observer.disconnect();
+      window.removeEventListener('resize', recalcMasonry);
+    };
+  }, [activeWidgets, currentTabId, isEditMode]);
+
   // Bu sekmede henüz eklenmemiş olan widget'lar
   const unaddedWidgets = ALL_WIDGETS.filter(w => !activeWidgets.some(aw => aw.id === w.id));
 
@@ -524,11 +531,11 @@ const today = new Date();
                     className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''}`}
                     style={{ marginTop: '16px' }}
                   >
-                    {activeWidgets.map((w, index) => {
+                    {activeWidgets.map((w) => {
                       const widgetInfo = ALL_WIDGETS.find(aw => aw.id === w.id);
                       return (
                         <motion.div
-                          ref={el => { widgetRefs.current[w.id] = el; }}
+                          ref={element => { widgetRefs.current[w.id] = element; }}
                           layout
                           transition={{
                             layout: { duration: 0.25, ease: 'easeOut' }, // Animasyon süresi biraz yumuşatıldı
@@ -541,14 +548,6 @@ const today = new Date();
                           /* ==========================================
                              GÜNCELLENMİŞ SÜRÜKLE & BIRAK EKLENTİSİ
                              ========================================== */
-                          draggable={isEditMode}
-                          
-                          onDragStart={(e) => {
-                            setDraggedWidgetId(w.id);
-                            e.dataTransfer.effectAllowed = "move";
-                            e.currentTarget.style.opacity = "0.4"; // Sürüklerken şık bir şekilde saydamlaşır
-                          }}
-                          
                           onDragOver={(e) => {
                             e.preventDefault();
                             e.dataTransfer.dropEffect = "move";
@@ -568,8 +567,12 @@ const today = new Date();
                               return;
                             }
                             
-                            const fromIndex = activeWidgets.findIndex(item => item.id === draggedWidgetId);
-                            reorderWidgets(currentTabId, fromIndex, index);
+                            const layout = widgetLayouts[currentTabId] || [];
+                            const fromIndex = layout.findIndex(item => item.id === draggedWidgetId);
+                            const targetIndex = layout.findIndex(item => item.id === w.id);
+                            if (fromIndex !== -1 && targetIndex !== -1) {
+                              reorderWidgets(currentTabId, fromIndex, targetIndex);
+                            }
                             
                             e.currentTarget.style.opacity = "1";
                             setDraggedWidgetId(null);
@@ -580,7 +583,22 @@ const today = new Date();
                             <div className="widget-arac-cubugu">
                               <div className="widget-arac-sol">
                                 {/* İmleç grab (tutma eli) yapıldı */}
-                                <span className="widget-surukle" title="Sürükleyip Taşı" style={{ cursor: 'grab' }}>⠿</span>
+                                <span
+                                  className="widget-surukle"
+                                  title="Sürükleyip Taşı"
+                                  draggable={isEditMode}
+                                  onDragStart={(e) => {
+                                    e.stopPropagation();
+                                    setDraggedWidgetId(w.id);
+                                    e.dataTransfer.effectAllowed = "move";
+                                    e.currentTarget.closest('.widget-kutu').style.opacity = '0.4';
+                                  }}
+                                  onDragEnd={(e) => {
+                                    e.stopPropagation();
+                                    e.currentTarget.closest('.widget-kutu').style.opacity = '1';
+                                    setDraggedWidgetId(null);
+                                  }}
+                                >⠿</span>
                                 <span className="widget-arac-baslik">
                                   {simgesi(widgetInfo?.ikon)} {widgetInfo?.baslik}
                                 </span>

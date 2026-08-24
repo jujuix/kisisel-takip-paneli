@@ -1,5 +1,4 @@
 import React from 'react';
-// YOL DÜZELTİLDİ: context klasörü components'in içinde olduğu için ./context kullanıyoruz
 import { useApp } from '../context/AppContext'; 
 
 export const WidgetWrapper = ({ widgetData, panelId, children }) => {
@@ -23,7 +22,7 @@ export const WidgetWrapper = ({ widgetData, panelId, children }) => {
         width: '100%',
         flex: 1, 
         minHeight: '100%',
-        boxSizing: 'border-box', /* Taşan pikselleri engeller */
+        boxSizing: 'border-box',
         background: 'var(--renk-yuzey)', 
         borderRadius: '12px', 
         border: isEditMode ? '1px dashed var(--renk-vurgu)' : '1px solid var(--renk-kenarlik)',
@@ -49,7 +48,7 @@ export const WidgetWrapper = ({ widgetData, panelId, children }) => {
           </div>
 
           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-            {[1, 2, 4].map(size => (
+            {[1, 2, 3, 4].map(size => (
               <button 
                 key={size}
                 type="button"
@@ -70,9 +69,7 @@ export const WidgetWrapper = ({ widgetData, panelId, children }) => {
         </div>
       )}
 
-      {/* İçeriğin kutuyu tam doldurması için height: 100% eklendi */}
       <div style={{ flex: 1, position: 'relative', display: 'flex', flexDirection: 'column', height: '100%' }}>
-         {isEditMode && <div style={{ position: 'absolute', inset: 0, zIndex: 50, cursor: 'grab' }} />}
          {children}
       </div>
     </div>

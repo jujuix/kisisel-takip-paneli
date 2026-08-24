@@ -101,7 +101,7 @@ export const ALL_WIDGETS = [
   { id: "takip-hedefler", baslik: "Hedefler", ikon: "🎯", kategori: "Ders & Sınav", varsayilanGenislik: 4 },
   { id: "aliskanlik-haftalik", baslik: "Haftalık Alışkanlıklar", ikon: "🌱", kategori: "Planlama", varsayilanGenislik: 2 },
   { id: "aliskanlik-aylik", baslik: "Aylık Hedefler", ikon: "🎯", kategori: "Planlama", varsayilanGenislik: 1 },
-  { id: "is-kanban", baslik: "Kanban Panosu", ikon: "📋", kategori: "İş & Proje", varsayilanGenislik: 6 },
+  { id: "is-kanban", baslik: "Kanban Panosu", ikon: "📋", kategori: "İş & Proje", varsayilanGenislik: 4 },
   { id: "bugun-odak", baslik: "Bugün Odak", ikon: "📌", kategori: "İş & Proje", varsayilanGenislik: 2 },
   { id: "proje-fikirleri", baslik: "Proje Fikirleri", ikon: "💡", kategori: "İş & Proje", varsayilanGenislik: 2 },
   { id: "hizli-baglantilar", baslik: "Hızlı Bağlantılar", ikon: "🔗", kategori: "İş & Proje", varsayilanGenislik: 4}
