@@ -80,20 +80,7 @@ export const AppProvider = ({ children }) => {
     ]
   };
 
-  const [tabs, setTabs] = useState(() => {
-    try {
-      const s = localStorage.getItem('dinamikSekmeler_v2');
-      const saved = s ? JSON.parse(s) : {};
-      return Object.keys(defaultTabs).reduce((allTabs, pageId) => ({
-        ...allTabs,
-        [pageId]: Array.isArray(saved[pageId]) && saved[pageId].length > 0
-          ? saved[pageId]
-          : defaultTabs[pageId]
-      }), { ...saved });
-    } catch(e) {
-      return defaultTabs;
-    }
-  });
+  const [tabs, setTabs] = useState(defaultTabs);
 
   const [activeTabByPage, setActiveTabByPage] = useState({
     ana: "ana",
@@ -142,20 +129,7 @@ export const AppProvider = ({ children }) => {
     ]
   };
 
-  const [widgetLayouts, setWidgetLayouts] = useState(() => {
-    try {
-      const s = localStorage.getItem('widgetDuzenleri_v5');
-      const saved = s ? JSON.parse(s) : {};
-      return Object.keys(defaultWidgets).reduce((layouts, panelId) => ({
-        ...layouts,
-        [panelId]: Array.isArray(saved[panelId]) && saved[panelId].length > 0
-          ? saved[panelId]
-          : defaultWidgets[panelId]
-      }), { ...saved });
-    } catch(e) {
-      return defaultWidgets;
-    }
-  });
+  const [widgetLayouts, setWidgetLayouts] = useState(defaultWidgets);
 
   // Merkezi Görevler ve Kategoriler
   const defaultCategories = [
@@ -164,90 +138,28 @@ export const AppProvider = ({ children }) => {
     { id: "kat_kisisel", ad: "Kişisel", ikon: "🎯", baglanti: "bagimsiz", anaSayfadaGoster: true }
   ];
 
-  const [categories, setCategories] = useState(() => {
-    try {
-      const s = localStorage.getItem('merkeziKategoriler_v1');
-      return s ? JSON.parse(s) : defaultCategories;
-    } catch(e) {
-      return defaultCategories;
-    }
+  const [categories, setCategories] = useState(defaultCategories);
+
+  const [tasks, setTasks] = useState([]);
+
+  const [panelData, setPanelData] = useState({ takvimNotlari: {}, notKagidi: "" });
+
+  const [dersData, setDersData] = useState({
+    sinavTuru: "kpss_ortaogretim",
+    sinavTarihi: getNextExamDate(SINAV_MUFREDATLARI.kpss_ortaogretim.varsayilanTarih),
+    dersler: createCurriculum("kpss_ortaogretim"),
+    denemeler: [],
+    yanlislar: [],
+    calismaGunleri: {},
+    hedefler: [],
+    calismaPlani: []
   });
 
-  const [tasks, setTasks] = useState(() => {
-    try {
-      const s = localStorage.getItem('merkeziGorevler_v1');
-      return s ? JSON.parse(s) : [];
-    } catch(e) {
-      return [];
-    }
-  });
+  const [isData, setIsData] = useState({ projeler: [], fikirler: "", hizliNotlar: [] });
 
-  const [panelData, setPanelData] = useState(() => {
-    try {
-      const s = localStorage.getItem('panelVerisi');
-      return s ? JSON.parse(s) : { takvimNotlari: {}, notKagidi: "" };
-    } catch(e) {
-      return { takvimNotlari: {}, notKagidi: "" };
-    }
-  });
-
-  const [dersData, setDersData] = useState(() => {
-    try {
-      const s = localStorage.getItem('dersPaneliVerisi');
-      if (s) {
-        const saved = JSON.parse(s);
-        return { ...saved, sinavTarihi: getNextExamDate(saved.sinavTarihi) };
-      }
-      return {
-        sinavTuru: "kpss_ortaogretim",
-        sinavTarihi: getNextExamDate(SINAV_MUFREDATLARI.kpss_ortaogretim.varsayilanTarih),
-        dersler: createCurriculum("kpss_ortaogretim"),
-        denemeler: [],
-        yanlislar: [],
-        calismaGunleri: {},
-        hedefler: [],
-        calismaPlani: []
-      };
-    } catch(e) {
-      return {
-        sinavTuru: "kpss_ortaogretim",
-        sinavTarihi: getNextExamDate("2026-10-04"),
-        dersler: createCurriculum("kpss_ortaogretim"),
-        denemeler: [],
-        yanlislar: [],
-        calismaGunleri: {},
-        hedefler: [],
-        calismaPlani: []
-      };
-    }
-  });
-
-  const [isData, setIsData] = useState(() => {
-    try {
-      const s = localStorage.getItem('isPaneliVerisi');
-      return s ? JSON.parse(s) : { projeler: [], fikirler: "", hizliNotlar: [] };
-    } catch(e) {
-      return { projeler: [], fikirler: "", hizliNotlar: [] };
-    }
-  });
-
-  const [weeklyHabits, setWeeklyHabits] = useState(() => {
-    try {
-      const saved = localStorage.getItem('aliskanlikHaftalik_v2');
-      return saved ? JSON.parse(saved) : [{ id: 'h1', name: 'KPSS Soru Çözümü', history: {} }, { id: 'h2', name: 'Kitap Okuma', history: {} }];
-    } catch { return [{ id: 'h1', name: 'KPSS Soru Çözümü', history: {} }, { id: 'h2', name: 'Kitap Okuma', history: {} }]; }
-  });
-  const [monthlyHabits, setMonthlyHabits] = useState(() => {
-    try {
-      const saved = localStorage.getItem('aliskanlikAylik_v2');
-      return saved ? JSON.parse(saved) : [{ id: 'm1', name: 'Derin Çalışma (Deep Work)', history: {} }];
-    } catch { return [{ id: 'm1', name: 'Derin Çalışma (Deep Work)', history: {} }]; }
-  });
+  const [weeklyHabits, setWeeklyHabits] = useState([{ id: 'h1', name: 'KPSS Soru Çözümü', history: {} }, { id: 'h2', name: 'Kitap Okuma', history: {} }]);
+  const [monthlyHabits, setMonthlyHabits] = useState([{ id: 'm1', name: 'Derin Çalışma (Deep Work)', history: {} }]);
   const [timelineProjects, setTimelineProjects] = useState(() => {
-    try {
-      const saved = localStorage.getItem('isZaman_v6');
-      if (saved) return JSON.parse(saved);
-    } catch { /* Use the default timeline below. */ }
     const year = new Date().getFullYear();
     const month = new Date().getMonth();
     return [
