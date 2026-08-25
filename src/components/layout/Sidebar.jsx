@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar = ({ onOpenAvatarModal }) => {
-  const { activePage, setActivePage, userName, userAvatar, showPrompt, simgesi } = useApp();
+  const { activePage, setActivePage, userName, setUserName, userAvatar, showPrompt, simgesi } = useApp();
+  const { signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -110,6 +112,13 @@ export const Sidebar = ({ onOpenAvatarModal }) => {
               <p className="yan-menu-promo-metin" style={{ margin: 0, fontSize: '11px' }}>Küçük adımlar, büyük zaferler getirir.</p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={signOut}
+            style={{ marginTop: '12px', width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--renk-kenarlik)', background: 'transparent', color: '#ff6961', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}
+          >
+            Çıkış Yap
+          </button>
         </div>
       </nav>
     </>

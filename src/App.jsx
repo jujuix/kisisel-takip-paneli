@@ -1,5 +1,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useApp } from './context/AppContext';
+import { useAuth } from './context/AuthContext';
+import { LoginScreen } from './components/LoginScreen';
 import { getGreetingMessage, ALL_WIDGETS, SINAV_MUFREDATLARI, EMOJI_HAVUZU } from './constants';
 import { Sidebar } from './components/layout/Sidebar';
 import { Topbar } from './components/layout/Topbar';
@@ -25,6 +27,16 @@ import { YoutubeKursWidget } from './components/dashboard/YoutubeKursWidget';
 
 
 export default function App() {
+  const { session, loading: authLoading } = useAuth();
+
+  if (authLoading) {
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Yükleniyor...</div>;
+  }
+
+  if (!session) {
+    return <LoginScreen />;
+  }
+
   const { 
     activePage, userName, setUserName,
     categories, addCategory,
@@ -32,7 +44,7 @@ export default function App() {
     updateWidgetWidth, toggleWidgetVisibility, reorderWidgets, resetWidgets,
     setUserAvatar, activeTabByPage = { ana: "ana", is: "is", ders: "ders_genel" },
     dersData, setDersData, changeExamType,
-    dialogModal, closeDialog, simgesi, isData, setIsData
+    dialogModal, setDialogModal, closeDialog, simgesi, isData, setIsData
   } = useApp();
 
   const [draggedWidgetId, setDraggedWidgetId] = useState(null);
