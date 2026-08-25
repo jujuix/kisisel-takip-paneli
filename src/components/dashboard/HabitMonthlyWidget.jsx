@@ -1,20 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const HabitMonthlyWidget = () => {
-  const { simgesi } = useApp();
-  const [habits, setHabits] = useState(() => {
-    const saved = localStorage.getItem('aliskanlikAylik_v2');
-    return saved ? JSON.parse(saved) : [
-      { id: 'm1', name: 'Derin Çalışma (Deep Work)', history: {} }
-    ];
-  });
+  const { simgesi, monthlyHabits: habits, setMonthlyHabits: setHabits } = useApp();
 
   const [newHabit, setNewHabit] = useState('');
-
-  useEffect(() => {
-    localStorage.setItem('aliskanlikAylik_v2', JSON.stringify(habits));
-  }, [habits]);
 
   const last35Days = Array.from({ length: 35 }, (_, i) => {
     const d = new Date(); d.setDate(d.getDate() - (34 - i)); return d.toISOString().split('T')[0];

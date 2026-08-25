@@ -1,18 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { createCurriculum, VEKTOR_IKONLAR, ALL_WIDGETS, SINAV_MUFREDATLARI, getNextExamDate } from '../constants';
+import { supabase } from '../supabaseClient';
+import { useAuth } from './AuthContext';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => localStorage.getItem('tema') || 'acik');
-  const [accentColor, setAccentColor] = useState(() => localStorage.getItem('renkTemasi') || '#10b981');
-  const [iconStyle, setIconStyle] = useState(() => localStorage.getItem('panelIkonStili') || 'emoji');
-  const [uiScale, setUiScale] = useState(() => Number(localStorage.getItem('arayuzOlcegi_v1')) || 0.8);
+  const { user } = useAuth();
+  const [theme, setTheme] = useState('acik');
+  const [accentColor, setAccentColor] = useState('#10b981');
+  const [iconStyle, setIconStyle] = useState('emoji');
+  const [uiScale, setUiScale] = useState(0.8);
   
-  const [userName, setUserName] = useState(() => localStorage.getItem('panelAdi_v1') || 'Kişisel Panel');
-  const [userAvatar, setUserAvatar] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('panelAvatar_v1')); } catch(e) { return null; }
-  });
+  const [userName, setUserName] = useState('Kişisel Panel');
+  const [userAvatar, setUserAvatar] = useState(null);
 
   const [activePage, setActivePage] = useState('ana');
   const [activeDersTab, setActiveDersTab] = useState('ders_genel');
@@ -230,29 +231,114 @@ export const AppProvider = ({ children }) => {
     }
   });
 
-  useEffect(() => { localStorage.setItem('tema', theme); document.body.classList.toggle('koyu-tema', theme === 'koyu'); }, [theme]);
+  const [weeklyHabits, setWeeklyHabits] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aliskanlikHaftalik_v2');
+      return saved ? JSON.parse(saved) : [{ id: 'h1', name: 'KPSS Soru Çözümü', history: {} }, { id: 'h2', name: 'Kitap Okuma', history: {} }];
+    } catch { return [{ id: 'h1', name: 'KPSS Soru Çözümü', history: {} }, { id: 'h2', name: 'Kitap Okuma', history: {} }]; }
+  });
+  const [monthlyHabits, setMonthlyHabits] = useState(() => {
+    try {
+      const saved = localStorage.getItem('aliskanlikAylik_v2');
+      return saved ? JSON.parse(saved) : [{ id: 'm1', name: 'Derin Çalışma (Deep Work)', history: {} }];
+    } catch { return [{ id: 'm1', name: 'Derin Çalışma (Deep Work)', history: {} }]; }
+  });
+  const [timelineProjects, setTimelineProjects] = useState(() => {
+    try {
+      const saved = localStorage.getItem('isZaman_v6');
+      if (saved) return JSON.parse(saved);
+    } catch { /* Use the default timeline below. */ }
+    const year = new Date().getFullYear();
+    const month = new Date().getMonth();
+    return [
+      { id: 'p1', isim: 'Okula Dönüş Kampanyası', phases: [{ id: 'ph1', isim: 'Araştırma', startTimestamp: new Date(year, month, 2).getTime(), endTimestamp: new Date(year, month, 5).getTime(), isHighlight: false }, { id: 'ph2', isim: 'Tasarım', startTimestamp: new Date(year, month, 6).getTime(), endTimestamp: new Date(year, month, 12).getTime(), isHighlight: true }] },
+      { id: 'p2', isim: 'Yeni Web Sitesi', phases: [{ id: 'ph3', isim: 'Geliştirme', startTimestamp: new Date(year, month, 10).getTime(), endTimestamp: new Date(year, month, 25).getTime(), isHighlight: false }] }
+    ];
+  });
+
+  useEffect(() => { document.body.classList.toggle('koyu-tema', theme === 'koyu'); }, [theme]);
   useEffect(() => {
-    localStorage.setItem('renkTemasi', accentColor);
     document.body.style.setProperty('--renk-vurgu', accentColor);
     document.body.style.setProperty('--renk-vurgu-hover', `color-mix(in srgb, ${accentColor} 82%, black)`);
     document.body.style.setProperty('--renk-vurgu-halka', `color-mix(in srgb, ${accentColor} 15%, transparent)`);
     document.body.style.setProperty('--renk-vurgu-yuzey', `color-mix(in srgb, ${accentColor} 12%, ${theme === 'koyu' ? 'transparent' : 'white'})`);
   }, [accentColor, theme]);
 
-  useEffect(() => { localStorage.setItem('panelIkonStili', iconStyle); }, [iconStyle]);
   useEffect(() => {
-    localStorage.setItem('arayuzOlcegi_v1', String(uiScale));
     document.body.style.zoom = String(uiScale);
   }, [uiScale]);
-  useEffect(() => { localStorage.setItem('panelAdi_v1', userName); }, [userName]);
-  useEffect(() => { localStorage.setItem('panelAvatar_v1', JSON.stringify(userAvatar)); }, [userAvatar]);
-  useEffect(() => { localStorage.setItem('dinamikSekmeler_v2', JSON.stringify(tabs)); }, [tabs]);
-  useEffect(() => { localStorage.setItem('widgetDuzenleri_v5', JSON.stringify(widgetLayouts)); }, [widgetLayouts]);
-  useEffect(() => { localStorage.setItem('merkeziKategoriler_v1', JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { localStorage.setItem('merkeziGorevler_v1', JSON.stringify(tasks)); }, [tasks]);
-  useEffect(() => { localStorage.setItem('panelVerisi', JSON.stringify(panelData)); }, [panelData]);
-  useEffect(() => { localStorage.setItem('dersPaneliVerisi', JSON.stringify(dersData)); }, [dersData]);
-  useEffect(() => { localStorage.setItem('isPaneliVerisi', JSON.stringify(isData)); }, [isData]);
+
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [appDataLoaded, setAppDataLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setProfileLoaded(false); setAppDataLoaded(false); return; }
+
+    const loadUserData = async () => {
+      const [{ data: profile }, { data: savedState, error: stateError }] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        supabase.from('widget_data').select('data').eq('user_id', user.id).eq('widget_id', 'app-state').eq('panel_id', 'global').maybeSingle()
+      ]);
+
+      if (profile) {
+        setUserName(profile.user_name || 'Kişisel Panel');
+        try { setUserAvatar(profile.avatar_url ? JSON.parse(profile.avatar_url) : null); } catch { setUserAvatar(null); }
+        setTheme(profile.theme || 'acik');
+        setAccentColor(profile.accent_color || '#10b981');
+        setIconStyle(profile.icon_style || 'emoji');
+      } else if (!profile) {
+        const { error: insertError } = await supabase.from('profiles').insert({ id: user.id });
+        if (insertError) console.error('Profil oluşturulamadı:', insertError);
+      }
+      if (stateError) console.error('Uygulama verileri okunamadı:', stateError);
+      if (savedState?.data) {
+        const saved = savedState.data;
+        if (saved.tabs) setTabs(saved.tabs);
+        if (saved.widgetLayouts) setWidgetLayouts(saved.widgetLayouts);
+        if (saved.activeTabByPage) setActiveTabByPage(saved.activeTabByPage);
+        if (saved.categories) setCategories(saved.categories);
+        if (saved.tasks) setTasks(saved.tasks);
+        if (saved.panelData) setPanelData(saved.panelData);
+        if (saved.dersData) setDersData(saved.dersData);
+        if (saved.isData) setIsData(saved.isData);
+        if (saved.weeklyHabits) setWeeklyHabits(saved.weeklyHabits);
+        if (saved.monthlyHabits) setMonthlyHabits(saved.monthlyHabits);
+        if (saved.timelineProjects) setTimelineProjects(saved.timelineProjects);
+        if (saved.uiScale) setUiScale(saved.uiScale);
+      }
+      setProfileLoaded(true);
+      setAppDataLoaded(true);
+    };
+
+    loadUserData();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !profileLoaded) return;
+    supabase.from('profiles').upsert({
+      id: user.id,
+      user_name: userName,
+      avatar_url: JSON.stringify(userAvatar),
+      theme,
+      accent_color: accentColor,
+      icon_style: iconStyle
+    }, { onConflict: 'id' }).then(({ error }) => {
+      if (error) console.error('Profil kaydedilemedi:', error);
+    });
+  }, [userName, userAvatar, theme, accentColor, iconStyle, user, profileLoaded]);
+  useEffect(() => {
+    if (!user || !appDataLoaded) return;
+    const data = { tabs, widgetLayouts, activeTabByPage, categories, tasks, panelData, dersData, isData, weeklyHabits, monthlyHabits, timelineProjects, uiScale };
+    supabase.from('widget_data').upsert({
+      user_id: user.id,
+      widget_id: 'app-state',
+      panel_id: 'global',
+      data,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,widget_id,panel_id' }).then(({ error }) => {
+      if (error) console.error('Uygulama verileri kaydedilemedi:', error);
+    });
+  }, [user, appDataLoaded, tabs, widgetLayouts, activeTabByPage, categories, tasks, panelData, dersData, isData, weeklyHabits, monthlyHabits, timelineProjects, uiScale]);
 
   const simgesi = (emoji) => {
     if (iconStyle === "svg" && VEKTOR_IKONLAR[emoji]) {
@@ -412,6 +498,9 @@ export const AppProvider = ({ children }) => {
       panelData: panelData || { takvimNotlari: {}, notKagidi: "" }, setPanelData,
       dersData: dersData || { dersler: [], denemeler: [], yanlislar: [], hedefler: [], calismaPlani: [] }, setDersData,
       isData: isData || { projeler: [], fikirler: "", hizliNotlar: [] }, setIsData,
+      weeklyHabits, setWeeklyHabits,
+      monthlyHabits, setMonthlyHabits,
+      timelineProjects, setTimelineProjects,
       changeExamType,
       dialogModal, setDialogModal, showConfirm, showPrompt, closeDialog
     }}>

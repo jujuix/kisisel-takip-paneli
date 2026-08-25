@@ -1,38 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { CustomSelect } from '../ui/CustomSelect'; 
 
 export const WorkTimelineWidget = () => {
-  const { simgesi } = useApp();
+  const { simgesi, timelineProjects: projects, setTimelineProjects: setProjects } = useApp();
 
   const [currentDate, setCurrentDate] = useState(new Date());
 
   // v6 Sürümü: Satırlar (Rows) artık PROJE isimleri, Kapsüller (Pills) ise AŞAMALAR.
-  const [projects, setProjects] = useState(() => {
-    const saved = localStorage.getItem('isZaman_v6');
-    if (saved) return JSON.parse(saved);
-    
-    const y = new Date().getFullYear();
-    const m = new Date().getMonth();
-    
-    return [
-      { 
-        id: 'p1', 
-        isim: "Okula Dönüş Kampanyası", 
-        phases: [
-          { id: 'ph1', isim: "Araştırma", startTimestamp: new Date(y, m, 2).getTime(), endTimestamp: new Date(y, m, 5).getTime(), isHighlight: false },
-          { id: 'ph2', isim: "Tasarım", startTimestamp: new Date(y, m, 6).getTime(), endTimestamp: new Date(y, m, 12).getTime(), isHighlight: true }
-        ]
-      },
-      { 
-        id: 'p2', 
-        isim: "Yeni Web Sitesi", 
-        phases: [
-          { id: 'ph3', isim: "Geliştirme", startTimestamp: new Date(y, m, 10).getTime(), endTimestamp: new Date(y, m, 25).getTime(), isHighlight: false }
-        ]
-      }
-    ];
-  });
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -50,10 +25,6 @@ export const WorkTimelineWidget = () => {
   const [newStart, setNewStart] = useState(1);
   const [newSpan, setNewSpan] = useState(7);
   const [isHighlight, setIsHighlight] = useState(false);
-
-  useEffect(() => {
-    localStorage.setItem('isZaman_v6', JSON.stringify(projects));
-  }, [projects]);
 
   const viewYear = currentDate.getFullYear();
   const viewMonth = currentDate.getMonth();
