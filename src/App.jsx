@@ -24,32 +24,27 @@ import { BugunOdakWidget } from "./components/work/BugunOdakWidget";
 import { ProjeFikirleriWidget } from "./components/work/ProjeFikirleriWidget";
 import { HizliBaglantilarWidget } from "./components/work/HizliBaglantilarWidget";
 import { YoutubeKursWidget } from './components/dashboard/YoutubeKursWidget';
+import { SportProgramWidget, SportDailyWidget, SportExercisesWidget } from './components/sport/SportWidgets';
+import { MoodTrackerWidget, PersonalHabitWidget, PersonalListsWidget, PersonalBooksWidget, PersonalMediaWidget, PersonalBudgetWidget, PersonalSubscriptionWidget, PersonalCycleWidget } from './components/personal/PersonalWidgets';
 
 
 export default function App() {
   const { session, loading: authLoading } = useAuth();
-
-  if (authLoading) {
-    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Yükleniyor...</div>;
-  }
-
-  if (!session) {
-    return <LoginScreen />;
-  }
-
-  const { 
-    activePage, userName, setUserName,
+  const {
+    activePage, userName, setUserName, pages = [],
     categories, addCategory,
     widgetLayouts = {}, isEditMode, setIsEditMode,
     updateWidgetWidth, toggleWidgetVisibility, reorderWidgets, resetWidgets,
     setUserAvatar, activeTabByPage = { ana: "ana", is: "is", ders: "ders_genel" },
     dersData, setDersData, changeExamType,
-    dialogModal, setDialogModal, closeDialog, simgesi, isData, setIsData
+    dialogModal, setDialogModal, closeDialog, simgesi, isData, setIsData,
+    getSafeWidgetLayout, sportData, setSportData
   } = useApp();
 
   const [draggedWidgetId, setDraggedWidgetId] = useState(null);
   const [dragOverWidgetId, setDragOverWidgetId] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedWidgetIds, setSelectedWidgetIds] = useState([]);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -77,6 +72,9 @@ export default function App() {
   const [fastNote, setFastNote] = useState('');
 
   const todayStr = new Date().toISOString().split('T')[0];
+  const dersLessons = Array.isArray(dersData?.dersler) ? dersData.dersler : [];
+  const calismaPlanlari = Array.isArray(dersData?.calismaPlani) ? dersData.calismaPlani : [];
+  const denemeListesi = Array.isArray(dersData?.denemeler) ? dersData.denemeler : [];
 
   useEffect(() => {
     if (!userName) {
@@ -88,10 +86,11 @@ export default function App() {
 
   // Hangi sayfadaysak o sayfanın aktif sekmesini al
   const currentTabId = activeTabByPage?.[activePage] || (activePage === 'ders' ? 'ders_genel' : activePage);
+  const currentPage = pages.find(page => page.id === activePage);
   
   // O sekmedeki widget listesi
-  const currentLayout = widgetLayouts?.[currentTabId] || [];
-  const activeWidgets = currentLayout.filter(w => w.gorunur);
+  const currentLayout = getSafeWidgetLayout(currentTabId);
+  const activeWidgets = currentLayout.filter(w => w?.gorunur !== false);
 
   const moveWidget = (widgetId, direction) => {
     const layout = widgetLayouts[currentTabId] || [];
@@ -152,10 +151,26 @@ export default function App() {
   // Bu sekmede henüz eklenmemiş olan widget'lar
   const unaddedWidgets = ALL_WIDGETS.filter(w => !activeWidgets.some(aw => aw.id === w.id));
 
-  const widgetCategories = ["Tümü", "Genel", "Planlama", "Ders & Sınav", "İş & Proje"];
+  const widgetCategories = [
+    "Tümü",
+    ...Array.from(new Set(ALL_WIDGETS.map(widget => widget.kategori).filter(Boolean)))
+  ];
   const filteredUnaddedWidgets = selectedWidgetCat === "Tümü" 
     ? unaddedWidgets 
     : unaddedWidgets.filter(w => w.kategori === selectedWidgetCat);
+
+  const toggleWidgetSelection = (widgetId) => {
+    setSelectedWidgetIds(prev => prev.includes(widgetId)
+      ? prev.filter(id => id !== widgetId)
+      : [...prev, widgetId]
+    );
+  };
+
+  const addSelectedWidgets = () => {
+    selectedWidgetIds.forEach(widgetId => toggleWidgetVisibility(currentTabId, widgetId));
+    setSelectedWidgetIds([]);
+    setShowAddModal(false);
+  };
 
   // Sayfaya göre filtrelenmiş kategoriler
   const pageCategories = categories.filter(c => {
@@ -167,8 +182,8 @@ export default function App() {
 
   // Zayıf Konular Algoritması
   const allTopics = [];
-  dersData.dersler.forEach(d => {
-    d.konular.forEach(k => {
+  dersLessons.forEach(d => {
+    (d?.konular || []).forEach(k => {
       let soru = 0, dogru = 0, lastDate = null;
       (k.kayitlar || []).forEach(r => {
         if (['test', 'tekrar'].includes(r.tip)) {
@@ -200,6 +215,17 @@ const today = new Date();
         return <HizliBaglantilarWidget />;
       case "youtube-kurs":
         return <YoutubeKursWidget />;
+      case "spor-program": return <SportProgramWidget />;
+      case "spor-gunluk": return <SportDailyWidget />;
+      case "spor-hareketler": return <SportExercisesWidget />;
+      case "gunluk-mod": return <MoodTrackerWidget />;
+      case "gunluk-aliskanlik": return <PersonalHabitWidget />;
+      case "gunluk-listeler": return <PersonalListsWidget />;
+      case "gunluk-kitap": return <PersonalBooksWidget />;
+      case "gunluk-medya": return <PersonalMediaWidget />;
+      case "gunluk-regl": return <PersonalCycleWidget />;
+      case "gunluk-butce": return <PersonalBudgetWidget />;
+      case "gunluk-abonelik": return <PersonalSubscriptionWidget />;
       case "proje-fikirleri": 
         return <ProjeFikirleriWidget />;
       case "bugun-odak":
@@ -303,7 +329,7 @@ const today = new Date();
                   placeholder="Ders Seç..."
                   options={[
                     { value: "", label: "Ders Seç..." },
-                    ...dersData.dersler.map(d => ({ value: d.ad, label: d.ad }))
+                    ...dersLessons.map(d => ({ value: d.ad, label: d.ad }))
                   ]} 
                 />
                 <input type="text" placeholder="Konu..." value={planKonu} onChange={e => setPlanKonu(e.target.value)} />
@@ -320,7 +346,7 @@ const today = new Date();
               </div>
             </div>
             <div className="calisma-plani-listesi" style={{ marginTop: '10px' }}>
-              {(dersData.calismaPlani || []).filter(p => p.tarih === todayStr).map(p => (
+              {calismaPlanlari.filter(p => p.tarih === todayStr).map(p => (
                 <div key={p.id} className={`calisma-plani-satiri ${p.tamamlandi ? 'tamamlandi' : ''}`}>
                   <input type="checkbox" checked={p.tamamlandi} onChange={() => {
                     setDersData(prev => ({ ...prev, calismaPlani: prev.calismaPlani.map(x => x.id === p.id ? { ...x, tamamlandi: !x.tamamlandi } : x) }));
@@ -341,7 +367,7 @@ const today = new Date();
         return (
           <div>
             <div className="section-header"><h2>{simgesi("📚")} Ders İlerlemesi</h2></div>
-            {dersData.dersler.map(d => {
+            {dersLessons.map(d => {
               const bitti = d.konular.filter(k => ['bitti', 'tekrar_edildi'].includes(k.durum)).length;
               const percent = d.konular.length ? Math.round((bitti / d.konular.length) * 100) : 0;
               return (
@@ -359,9 +385,9 @@ const today = new Date();
         return (
           <div>
             <div className="section-header"><h2>{simgesi("📈")} Net Gelişimi</h2></div>
-            {(dersData.denemeler || []).length === 0 ? <p className="bos-durum-notu">Deneme kaydı yok.</p> : (
+            {denemeListesi.length === 0 ? <p className="bos-durum-notu">Deneme kaydı yok.</p> : (
               <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '120px', padding: '10px 0' }}>
-                {dersData.denemeler.slice(0, 8).reverse().map((exam, idx) => (
+                {denemeListesi.slice(0, 8).reverse().map((exam, idx) => (
                   <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
                     <span style={{ fontSize: '10px', fontWeight: 'bold', marginBottom: '2px' }}>{exam.toplamNet.toFixed(1)}</span>
                     <div style={{ width: '100%', height: `${Math.min(100, Math.max(10, exam.toplamNet * 0.8))}%`, background: 'var(--renk-vurgu)', borderRadius: '4px 4px 0 0' }}></div>
@@ -476,13 +502,21 @@ const today = new Date();
   };
 
   let examCountdown = "Sınav tarihi seçilmedi";
-  if (dersData.sinavTarihi) {
+  if (dersData?.sinavTarihi) {
     const diff = Math.ceil((new Date(dersData.sinavTarihi) - new Date()) / (1000 * 60 * 60 * 24));
     examCountdown = diff > 0 ? `${diff} gün kaldı` : (diff === 0 ? "Sınav bugün!" : "Sınav tarihi geçti");
   }
 
   // Ders modülü için sabit alt sekmeler (Konular, Denemeler, Yanlışlar, Çalışma Takibi)
   const isDersSubPage = activePage === 'ders' && ['ders_konular', 'ders_denemeler', 'ders_yanlislar', 'ders_takip'].includes(currentTabId);
+
+  if (authLoading) {
+    return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Yükleniyor...</div>;
+  }
+
+  if (!session) {
+    return <LoginScreen />;
+  }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -493,7 +527,7 @@ const today = new Date();
         <Topbar 
           isEditMode={isEditMode}
           setIsEditMode={setIsEditMode}
-          onOpenAddWidgetModal={() => setShowAddModal(true)}
+          onOpenAddWidgetModal={() => { setSelectedWidgetIds([]); setShowAddModal(true); }}
           onResetWidgets={() => resetWidgets(currentTabId)}
           showEditControls={activePage !== 'ayarlar'}
         />
@@ -512,7 +546,7 @@ const today = new Date();
                   <>
                     <h1 style={{ margin: 0 }}>{simgesi("📚")} Ders Takip</h1>
                     <CustomSelect 
-  value={dersData.sinavTuru} 
+  value={dersData?.sinavTuru || "kpss_ortaogretim"} 
   onChange={(val) => changeExamType(val)}
   options={Object.keys(SINAV_MUFREDATLARI).map(k => ({
     value: k,
@@ -522,7 +556,7 @@ const today = new Date();
                     <div className="kpss-geri-sayim-satiri" style={{ marginLeft: '8px' }}>
                       <span className="kpss-geri-sayim-metin">{simgesi("⏳")} {examCountdown}</span>
                       <CustomDatePicker 
-  value={dersData.sinavTarihi || ""} 
+  value={dersData?.sinavTarihi || ""} 
   onChange={val => setDersData(prev => ({ ...prev, sinavTarihi: val }))} 
 />
                     </div>
@@ -530,6 +564,12 @@ const today = new Date();
                 )}
                 {activePage === 'is' && (
                   <h1 style={{ margin: 0 }}>{simgesi("💼")} İş Takip</h1>
+                )}
+                {currentPage && !['ana', 'ders', 'is'].includes(activePage) && (
+                  <>
+                    <h1 style={{ margin: 0 }}>{simgesi(currentPage.ikon)} {currentPage.ad}</h1>
+                    {currentPage.templateId === 'spor' && <CustomSelect value={sportData?.sporTuru || 'Fitness'} onChange={val => setSportData(prev => ({ ...prev, sporTuru: val }))} options={['Pilates', 'Yoga', 'Fitness', 'Koşu', 'Yüzme', 'Dans'].map(value => ({ value, label: value }))} />}
+                  </>
                 )}
               </div>
               <div id="bugunTarih" style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'var(--renk-metin-ikincil)', whiteSpace: 'nowrap' }}>
@@ -551,7 +591,7 @@ const today = new Date();
                   style={{ padding: '50px 20px', background: 'var(--renk-yuzey)', border: '2px dashed var(--renk-kenarlik)', borderRadius: '24px', margin: '16px 0' }}
                 >
                   <p style={{ margin: '0 0 14px 0', fontSize: '15px', fontWeight: '600' }}>Bu sekmede widget bulunmuyor. Dilediğin widget'ları ekleyerek başlayabilirsin.</p>
-                  <button type="button" className="ders-buyuk-buton" onClick={() => setShowAddModal(true)}>+ Widget Ekle</button>
+                  <button type="button" className="ders-buyuk-buton" onClick={() => { setSelectedWidgetIds([]); setShowAddModal(true); }}>+ Widget Ekle</button>
                 </motion.div>
               ) : (
                 <AnimatePresence mode="wait">
@@ -704,7 +744,8 @@ const today = new Date();
                 <input 
                   type="text" 
                   value={dialogModal.inputValue} 
-                  onChange={e => setDialogModal({ ...dialogModal, inputValue: e.target.value })}
+                  maxLength={dialogModal.maxLength || 30}
+                  onChange={e => setDialogModal({ ...dialogModal, inputValue: e.target.value.slice(0, dialogModal.maxLength || 30) })}
                   style={{ width: '100%', margin: '12px 0' }}
                   autoFocus 
                 />
@@ -734,7 +775,7 @@ const today = new Date();
 
         {/* Kategorize Edilmiş Widget Ekleme Modalı */}
         {showAddModal && (
-          <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-overlay" onClick={() => { setShowAddModal(false); setSelectedWidgetIds([]); }}>
             <div className="modal-kutu" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
               <div className="modal-baslik">
                 <h3>Widget Ekle</h3>
@@ -759,15 +800,13 @@ const today = new Date();
                   <p className="bos-liste-notu">Bu kategoride eklenebilecek widget bulunamadı.</p>
                 ) : (
                   filteredUnaddedWidgets.map(widget => (
-                    <button 
+                    <button
                       key={widget.id} 
                       type="button" 
-                      className="widget-ekle-oge" 
-                      onClick={() => { 
-                        toggleWidgetVisibility(currentTabId, widget.id); 
-                        setShowAddModal(false); 
-                      }}
+                      className={`widget-ekle-oge ${selectedWidgetIds.includes(widget.id) ? 'secili' : ''}`}
+                      onClick={() => toggleWidgetSelection(widget.id)}
                     >
+                      <span className="widget-ekle-checkbox" aria-hidden="true">{selectedWidgetIds.includes(widget.id) ? '✓' : ''}</span>
                       <span className="widget-ekle-ikon">{simgesi(widget.ikon)}</span>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ fontWeight: 'bold' }}>{widget.baslik}</span>
@@ -776,6 +815,12 @@ const today = new Date();
                     </button>
                   ))
                 )}
+              </div>
+              <div className="widget-ekle-alt-bar">
+                <span>{selectedWidgetIds.length > 0 ? `${selectedWidgetIds.length} widget seçildi` : 'Eklemek istediğin widgetları seç'}</span>
+                <button type="button" className="ders-buyuk-buton" disabled={selectedWidgetIds.length === 0} onClick={addSelectedWidgets}>
+                  Seçilenleri Ekle
+                </button>
               </div>
             </div>
           </div>

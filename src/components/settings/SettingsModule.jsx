@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { PAGE_TEMPLATES } from '../../constants';
 
 export const SettingsModule = () => {
   const { 
@@ -7,9 +8,14 @@ export const SettingsModule = () => {
     accentColor, setAccentColor, 
     iconStyle, setIconStyle, 
     uiScale, setUiScale,
+    pages = [], addPageFromTemplate, deletePage,
     dersData, setDersData, 
     showConfirm 
   } = useApp();
+  const [isCustomColorOpen, setIsCustomColorOpen] = useState(false);
+  const [customColor, setCustomColor] = useState(accentColor);
+  const [selectedTemplate, setSelectedTemplate] = useState('spor');
+  const [newPageName, setNewPageName] = useState('');
 
   const renkSecenekleri = [
     { hex: "#10b981", ad: "Yeşil" },
@@ -18,6 +24,21 @@ export const SettingsModule = () => {
     { hex: "#ef4444", ad: "Kırmızı" },
     { hex: "#ec4899", ad: "Pembe" }
   ];
+
+  const ozelRenkSecenekleri = [
+    '#f97316', '#eab308', '#84cc16', '#14b8a6', '#06b6d4', '#0ea5e9',
+    '#6366f1', '#a855f7', '#d946ef', '#f43f5e', '#78716c', '#334155'
+  ];
+
+  const handleCustomColorChange = (value) => {
+    setCustomColor(value);
+    if (/^#[0-9a-f]{6}$/i.test(value)) setAccentColor(value);
+  };
+
+  const handleAddPage = () => {
+    addPageFromTemplate(selectedTemplate, newPageName);
+    setNewPageName('');
+  };
 
   // Ders Verilerini JSON Olarak İndir
   const handleExportData = () => {
@@ -86,14 +107,38 @@ export const SettingsModule = () => {
         <h1>⚙️ Ayarlar</h1>
       </header>
 
+      <div className="ders-karti ayar-sayfa-yonetimi" style={{ marginBottom: '18px' }}>
+        <div className="section-header">
+          <div className="ayar-baslik-grubu">
+            <h2>🧩 Sayfalarım</h2>
+            <p>Hazır bir çalışma alanı ekle veya artık kullanmadığın sayfayı kaldır.</p>
+          </div>
+        </div>
+        <div className="ayar-sayfa-ekle">
+          <select value={selectedTemplate} onChange={e => setSelectedTemplate(e.target.value)}>
+            {PAGE_TEMPLATES.map(template => <option key={template.id} value={template.id}>{template.ikon} {template.ad}</option>)}
+          </select>
+          <input type="text" value={newPageName} maxLength={30} onChange={e => setNewPageName(e.target.value)} placeholder="Sayfa adı (isteğe bağlı)" />
+          <button type="button" className="ders-buyuk-buton" onClick={handleAddPage}>+ Sayfa Ekle</button>
+        </div>
+        <div className="ayar-sayfa-listesi">
+          {pages.map(page => (
+            <div className="ayar-sayfa-satiri" key={page.id}>
+              <span className="ayar-sayfa-adi">{page.ikon} {page.ad}</span>
+              <button type="button" className="ayar-sayfa-sil" onClick={() => showConfirm({ title: 'Sayfayı Kaldır', message: `${page.ad} sayfası ve sekmeleri kaldırılacak. Devam edilsin mi?`, confirmText: 'Kaldır', isDanger: true, onConfirm: () => deletePage(page.id) })}>Kaldır</button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* 1. GÖRÜNÜM AYARLARI */}
       <div className="ders-karti" style={{ marginBottom: '18px' }}>
         <div className="section-header">
-          <h2>🎨 Görünüm</h2>
+          <div className="ayar-baslik-grubu">
+            <h2>🎨 Görünüm</h2>
+            <p>Açık/koyu tema, vurgu rengi ve simge stilini özelleştir.</p>
+          </div>
         </div>
-        <p className="bos-liste-notu" style={{ padding: '0 0 12px 0', textAlign: 'left', border: 'none', background: 'transparent' }}>
-          Açık/koyu tema, vurgu rengi ve simge stilini dilediğin gibi özelleştirebilirsin.
-        </p>
 
         {/* Renk Teması */}
         <div className="tema-ayar-grup">
@@ -109,10 +154,51 @@ export const SettingsModule = () => {
                 <span className="renk-tema-nokta" style={{ background: renk.hex }}></span> {renk.ad}
               </button>
             ))}
-            <label className="renk-tema-secenek renk-tema-ozel" title="Özel renk seç">
-              <span className="renk-tema-nokta renk-tema-nokta-ozel" style={{ background: accentColor }}></span> Özel
-              <input type="color" value={accentColor} onChange={e => setAccentColor(e.target.value)} />
-            </label>
+            <div className="renk-tema-ozel-kapsayici">
+              <button
+                type="button"
+                className={`renk-tema-secenek renk-tema-ozel ${isCustomColorOpen ? 'aktif' : ''}`}
+                onClick={() => {
+                  setCustomColor(accentColor);
+                  setIsCustomColorOpen(prev => !prev);
+                }}
+                aria-expanded={isCustomColorOpen}
+              >
+                <span className="renk-tema-nokta renk-tema-nokta-ozel" style={{ background: accentColor }}></span>
+                Özel renk
+                <span className="renk-tema-ozel-ok">{isCustomColorOpen ? '⌃' : '⌄'}</span>
+              </button>
+              {isCustomColorOpen && (
+                <div className="renk-tema-popover">
+                  <div className="renk-tema-popover-baslik">
+                    <span>Özel vurgu rengi</span>
+                    <span className="renk-tema-onizleme" style={{ background: customColor }} />
+                  </div>
+                  <div className="renk-tema-palet" aria-label="Hazır özel renkler">
+                    {ozelRenkSecenekleri.map(hex => (
+                      <button
+                        key={hex}
+                        type="button"
+                        className={`renk-tema-palet-rengi ${accentColor.toLowerCase() === hex ? 'aktif' : ''}`}
+                        style={{ background: hex }}
+                        onClick={() => handleCustomColorChange(hex)}
+                        aria-label={`${hex} rengini seç`}
+                      />
+                    ))}
+                  </div>
+                  <label className="renk-tema-hex-alani">
+                    <span>Hex kodu</span>
+                    <input
+                      type="text"
+                      value={customColor}
+                      maxLength={7}
+                      onChange={e => handleCustomColorChange(e.target.value)}
+                      placeholder="#10B981"
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -166,11 +252,11 @@ export const SettingsModule = () => {
       {/* 2. DERS VERİLERİNİ YEDEKLE */}
       <div className="ders-karti" style={{ marginBottom: '18px' }}>
         <div className="section-header">
-          <h2>💾 Ders Verilerini Yedekle</h2>
+          <div className="ayar-baslik-grubu">
+            <h2>💾 Ders Verilerini Yedekle</h2>
+            <p>Verilerini JSON dosyasıyla taşı veya geri yükle.</p>
+          </div>
         </div>
-        <p className="bos-liste-notu" style={{ padding: '0 0 10px 0', textAlign: 'left', border: 'none', background: 'transparent' }}>
-          Ders takip verilerini tek bir JSON dosyası olarak indirebilir ya da yedeği geri yükleyebilirsin[cite: 3].
-        </p>
         <div className="gorev-formu-satir" style={{ gap: '10px' }}>
           <button className="ders-buyuk-buton" onClick={handleExportData}>⬇️ JSON Olarak Dışa Aktar</button>
           <label className="ders-ikincil-buton" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
@@ -183,11 +269,11 @@ export const SettingsModule = () => {
       {/* 3. VERİLERİ SIFIRLA */}
       <div className="ders-karti">
         <div className="section-header">
-          <h2>🗑️ Verileri Sıfırla</h2>
+          <div className="ayar-baslik-grubu">
+            <h2>🗑️ Verileri Sıfırla</h2>
+            <p>Ders takip verilerini kalıcı olarak temizle.</p>
+          </div>
         </div>
-        <p className="bos-liste-notu" style={{ padding: '0 0 10px 0', textAlign: 'left', border: 'none', background: 'transparent' }}>
-          Tüm ders takip verilerini kalıcı olarak siler ve varsayılan derslerle sıfırdan başlar[cite: 3].
-        </p>
         <button 
           className="onay-modal-vazgec-btn" 
           onClick={handleResetData} 

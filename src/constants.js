@@ -12,6 +12,71 @@ export const EMOJI_HAVUZU = [
 
 export const GUN_ADLARI = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
+export const PAGE_TEMPLATES = [
+  {
+    id: "panel",
+    builtinId: "ana",
+    ad: "Panel",
+    ikon: "🏠",
+    aciklama: "Günlük özet, görevler ve planlama araçları.",
+    tabs: [{ id: "ana", ad: "Genel Panel", ikon: "🏠", ozelMi: false }],
+    widgets: ["gunluk-ozet", "gorevler", "takvim", "not-defteri", "pomodoro"].map(id => ({ id, genislik: id === "gunluk-ozet" ? 4 : 2, gorunur: true }))
+  },
+  {
+    id: "ders",
+    builtinId: "ders",
+    ad: "Ders",
+    ikon: "📚",
+    aciklama: "Sınav, konu ve çalışma takibini yönet.",
+    tabs: [
+      { id: "ders_genel", ad: "Genel Bakış", ikon: "📊", ozelMi: false },
+      { id: "ders_konular", ad: "Konular", ikon: "📖", ozelMi: false },
+      { id: "ders_denemeler", ad: "Denemeler", ikon: "📝", ozelMi: false },
+      { id: "ders_yanlislar", ad: "Yanlışlarım", ikon: "❌", ozelMi: false },
+      { id: "ders_takip", ad: "Çalışma Takibi", ikon: "🔥", ozelMi: false }
+    ],
+    widgets: ["ders-zayif-konular", "ders-calisma-plani", "ders-ilerleme", "ders-net-grafik", "gunluk-ozet"].map(id => ({ id, genislik: id === "ders-zayif-konular" ? 4 : 2, gorunur: true }))
+  },
+  {
+    id: "is",
+    builtinId: "is",
+    ad: "İş",
+    ikon: "💼",
+    aciklama: "Projelerini, fikirlerini ve iş akışını takip et.",
+    tabs: [{ id: "is", ad: "Genel Bakış", ikon: "💼", ozelMi: false }],
+    widgets: ["is-zaman", "gorevler", "takvim", "is-fikirler", "is-hizli-not"].map(id => ({ id, genislik: id === "is-zaman" ? 4 : 2, gorunur: true }))
+  },
+  {
+    id: "spor",
+    ad: "Spor",
+    ikon: "🏋️",
+    aciklama: "Antrenmanlarını, hareketlerini ve sürelerini takip et.",
+    tabs: [{ id: "spor_genel", ad: "Genel Bakış", ikon: "🏋️", ozelMi: false }],
+    widgets: [
+      { id: "spor-program", genislik: 2, gorunur: true },
+      { id: "spor-gunluk", genislik: 2, gorunur: true },
+      { id: "spor-hareketler", genislik: 4, gorunur: true }
+    ]
+  },
+  {
+    id: "gunluk",
+    ad: "Kişisel Günlük",
+    ikon: "📔",
+    aciklama: "Günlük yaşamını, listelerini ve bütçeni tek yerde düzenle.",
+    tabs: [{ id: "gunluk_genel", ad: "Genel Bakış", ikon: "📔", ozelMi: false }],
+    widgets: [
+      { id: "gunluk-mod", genislik: 2, gorunur: true },
+      { id: "gunluk-aliskanlik", genislik: 2, gorunur: true },
+      { id: "gunluk-kitap", genislik: 2, gorunur: true },
+      { id: "gunluk-medya", genislik: 2, gorunur: true },
+      { id: "gunluk-listeler", genislik: 4, gorunur: true },
+      { id: "gunluk-regl", genislik: 2, gorunur: true },
+      { id: "gunluk-butce", genislik: 2, gorunur: true },
+      { id: "gunluk-abonelik", genislik: 2, gorunur: true }
+    ]
+  }
+];
+
 export const KONU_DURUMLARI = [
   { id: "baslanmadi", ad: "Başlanmadı", renk: "#9ca3af" },
   { id: "calisiyor", ad: "Çalışılıyor", renk: "#2563eb" },
@@ -117,6 +182,17 @@ export const ALL_WIDGETS = [
   { id: "proje-fikirleri", baslik: "Proje Fikirleri", ikon: "💡", kategori: "İş & Proje", varsayilanGenislik: 2 },
   { id: "hizli-baglantilar", baslik: "Hızlı Bağlantılar", ikon: "🔗", kategori: "İş & Proje", varsayilanGenislik: 4 },
   { id: "youtube-kurs", baslik: "YouTube Kurs Takibi", ikon: "🎬", kategori: "Ders & Sınav", varsayilanGenislik: 4 }
+  ,{ id: "spor-program", baslik: "Spor Programı", ikon: "🏋️", kategori: "Spor", varsayilanGenislik: 2 }
+  ,{ id: "spor-gunluk", baslik: "Spor Günlüğü", ikon: "📅", kategori: "Spor", varsayilanGenislik: 2 }
+  ,{ id: "spor-hareketler", baslik: "Hareket Planı", ikon: "💪", kategori: "Spor", varsayilanGenislik: 4 }
+  ,{ id: "gunluk-mod", baslik: "Mod Takibi", ikon: "🌤️", kategori: "Kişisel", varsayilanGenislik: 2 }
+  ,{ id: "gunluk-aliskanlik", baslik: "Alışkanlıklar", ikon: "🌱", kategori: "Kişisel", varsayilanGenislik: 2 }
+  ,{ id: "gunluk-listeler", baslik: "Kitap, Film ve Listeler", ikon: "📚", kategori: "Kişisel", varsayilanGenislik: 4 }
+  ,{ id: "gunluk-kitap", baslik: "Okunacak Kitaplar", ikon: "📖", kategori: "Kişisel", varsayilanGenislik: 2 }
+  ,{ id: "gunluk-medya", baslik: "İzlenecekler", ikon: "🎬", kategori: "Kişisel", varsayilanGenislik: 2 }
+  ,{ id: "gunluk-regl", baslik: "Regl Takibi", ikon: "🌙", kategori: "Kişisel", varsayilanGenislik: 2 }
+  ,{ id: "gunluk-butce", baslik: "Aylık Bütçe", ikon: "💰", kategori: "Kişisel", varsayilanGenislik: 2 }
+  ,{ id: "gunluk-abonelik", baslik: "Abonelikler", ikon: "🔁", kategori: "Kişisel", varsayilanGenislik: 2 }
 ];
 
 export const SINAV_MUFREDATLARI = {

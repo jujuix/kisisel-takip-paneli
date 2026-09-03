@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
 
@@ -8,6 +9,7 @@ export const LoginScreen = () => {
   const [mode, setMode] = useState('giris'); // giris | kayit
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
@@ -24,11 +26,31 @@ export const LoginScreen = () => {
       const { error } = await signIn(email, password);
       if (error) setError(error.message);
     } else {
-      const { data, error } = await signUp(email, password);
+      const cleanName = displayName.trim();
+      if (!cleanName) {
+        setError('İsim yazmak zorunlu.');
+        setLoading(false);
+        return;
+      }
+      if (cleanName.length > 30) {
+        setError('İsim en fazla 30 karakter olabilir.');
+        setLoading(false);
+        return;
+      }
+      const { data, error } = await signUp(email, password, cleanName);
       if (error) {
         setError(error.message);
       } else if (data?.user && !data?.session) {
+        try {
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            user_name: cleanName
+          }, { onConflict: 'id' });
+        } catch (profileError) {
+          console.error('Profil kaydı oluşturulamadı:', profileError);
+        }
         setInfo('Kayıt başarılı! E-postana gelen bağlantıya tıklayıp giriş yapabilirsin.');
+        setDisplayName('');
       }
     }
 
@@ -138,6 +160,29 @@ export const LoginScreen = () => {
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {mode === 'kayit' && (
+              <div>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: 'var(--renk-metin)', marginBottom: '6px' }}>
+                  İsim
+                </label>
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  border: '1px solid var(--renk-kenarlik)', borderRadius: '10px',
+                  padding: '11px 14px', background: 'var(--renk-arkaplan)'
+                }}>
+                  <input
+                    type="text"
+                    placeholder="İsminiz"
+                    value={displayName}
+                    maxLength={30}
+                    onChange={e => setDisplayName(e.target.value.slice(0, 30))}
+                    required
+                    style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', color: 'var(--renk-metin)', fontSize: '13.5px' }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: 'var(--renk-metin)', marginBottom: '6px' }}>
                 E-posta

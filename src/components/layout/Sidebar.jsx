@@ -3,10 +3,16 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 
 export const Sidebar = ({ onOpenAvatarModal }) => {
-  const { activePage, setActivePage, userName, setUserName, userAvatar, showPrompt, simgesi } = useApp();
+  const { activePage, setActivePage, userName, setUserName, userAvatar, showPrompt, simgesi, tabs = {}, activeTabByPage = {}, setActiveTabByPage, pages = [] } = useApp();
   const { signOut } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [expandedPage, setExpandedPage] = useState('ana');
+
+  const pageConfig = [
+    ...pages.map(page => ({ key: page.id, label: page.ad, icon: page.ikon })),
+    { key: 'ayarlar', label: 'Ayarlar', icon: '⚙️' }
+  ];
 
   const getAvatarDisplay = () => {
     if (userAvatar?.tip === 'gorsel') return <img src={userAvatar.deger} alt="Avatar" />;
@@ -20,14 +26,24 @@ export const Sidebar = ({ onOpenAvatarModal }) => {
       message: 'Paneline vermek istediğin adı veya sana nasıl hitap etmemizi istediğini yaz:',
       defaultValue: userName,
       confirmText: 'Kaydet',
+      maxLength: 30,
       onConfirm: (val) => {
-        if (val && val.trim()) setUserName(val.trim());
+        const cleaned = (val || '').trim();
+        if (cleaned) setUserName(cleaned.slice(0, 30));
       }
     });
   };
 
   const handlePageSelect = (page) => {
     setActivePage(page);
+    setExpandedPage(prev => prev === page ? null : page);
+    setIsMobileOpen(false);
+  };
+
+  const handleTabSelect = (page, tabId) => {
+    setActivePage(page);
+    setActiveTabByPage(prev => ({ ...prev, [page]: tabId }));
+    setExpandedPage(page);
     setIsMobileOpen(false);
   };
 
@@ -86,22 +102,42 @@ export const Sidebar = ({ onOpenAvatarModal }) => {
         </div>
 
         <div className="yan-menu-ogeler">
-          <button className={`yan-menu-oge ${activePage === 'ana' ? 'aktif' : ''}`} onClick={() => handlePageSelect('ana')}>
-            <span className="yan-menu-ikon">{simgesi("🏠")}</span>
-            <span className="yan-menu-etiket">Panel</span>
-          </button>
-          <button className={`yan-menu-oge ${activePage === 'ders' ? 'aktif' : ''}`} onClick={() => handlePageSelect('ders')}>
-            <span className="yan-menu-ikon">{simgesi("📚")}</span>
-            <span className="yan-menu-etiket">Ders</span>
-          </button>
-          <button className={`yan-menu-oge ${activePage === 'is' ? 'aktif' : ''}`} onClick={() => handlePageSelect('is')}>
-            <span className="yan-menu-ikon">{simgesi("💼")}</span>
-            <span className="yan-menu-etiket">İş</span>
-          </button>
-          <button className={`yan-menu-oge ${activePage === 'ayarlar' ? 'aktif' : ''}`} onClick={() => handlePageSelect('ayarlar')}>
-            <span className="yan-menu-ikon">{simgesi("⚙️")}</span>
-            <span className="yan-menu-etiket">Ayarlar</span>
-          </button>
+          {pageConfig.map(({ key, label, icon }) => {
+            const pageTabs = tabs?.[key] || [];
+            const isExpanded = expandedPage === key;
+            const isSelected = activePage === key;
+
+            return (
+              <div key={key} className="yan-menu-grup">
+                <button className={`yan-menu-oge ${isSelected ? 'aktif' : ''}`} onClick={() => handlePageSelect(key)}>
+                  <span className="yan-menu-ikon">{simgesi(icon)}</span>
+                  <span className="yan-menu-etiket">{label}</span>
+                  {pageTabs.length > 0 && (
+                    <span className={`yan-menu-acilir-ok ${isExpanded ? 'acik' : ''}`}>▾</span>
+                  )}
+                </button>
+
+                {isExpanded && pageTabs.length > 0 && (
+                  <div className="yan-menu-alt-sekmeler">
+                    {pageTabs.map((tab) => {
+                      const isTabActive = activeTabByPage?.[key] === tab.id;
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          className={`yan-menu-alt-sekme ${isTabActive ? 'aktif' : ''}`}
+                          onClick={() => handleTabSelect(key, tab.id)}
+                        >
+                          <span className="yan-menu-alt-sekme-ikon">{simgesi(tab.ikon || '📌')}</span>
+                          <span>{tab.ad}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="yan-menu-alt">

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createCurriculum, VEKTOR_IKONLAR, ALL_WIDGETS, SINAV_MUFREDATLARI, getNextExamDate } from '../constants';
+import { createCurriculum, VEKTOR_IKONLAR, ALL_WIDGETS, SINAV_MUFREDATLARI, PAGE_TEMPLATES, getNextExamDate } from '../constants';
 import { supabase } from '../supabaseClient';
 import { useAuth } from './AuthContext';
 
@@ -16,6 +16,11 @@ export const AppProvider = ({ children }) => {
   const [userAvatar, setUserAvatar] = useState(null);
 
   const [activePage, setActivePage] = useState('ana');
+  const [pages, setPages] = useState([
+    { id: 'ana', ad: 'Panel', ikon: '🏠', sabit: true },
+    { id: 'ders', ad: 'Ders', ikon: '📚', sabit: true },
+    { id: 'is', ad: 'İş', ikon: '💼', sabit: true }
+  ]);
   const [activeDersTab, setActiveDersTab] = useState('ders_genel');
   const [isEditMode, setIsEditMode] = useState(false);
 
@@ -26,6 +31,7 @@ export const AppProvider = ({ children }) => {
     title: 'Uyarı',
     message: '',
     inputValue: '',
+    maxLength: 100,
     confirmText: 'Tamam',
     cancelText: 'Vazgeç',
     isDanger: false,
@@ -48,13 +54,14 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  const showPrompt = ({ title = 'Giriş', message, defaultValue = '', confirmText = 'Kaydet', onConfirm }) => {
+  const showPrompt = ({ title = 'Giriş', message, defaultValue = '', confirmText = 'Kaydet', maxLength = 30, onConfirm }) => {
     setDialogModal({
       isOpen: true,
       type: 'prompt',
       title,
       message,
       inputValue: defaultValue,
+      maxLength,
       confirmText,
       cancelText: 'Vazgeç',
       isDanger: false,
@@ -129,6 +136,12 @@ export const AppProvider = ({ children }) => {
     ]
   };
 
+  const getSafeWidgetLayout = (panelId) => {
+    const list = widgetLayouts?.[panelId];
+    if (Array.isArray(list) && list.length > 0) return list;
+    return defaultWidgets?.[panelId] || [];
+  };
+
   const [widgetLayouts, setWidgetLayouts] = useState(defaultWidgets);
 
   // Merkezi Görevler ve Kategoriler
@@ -144,7 +157,7 @@ export const AppProvider = ({ children }) => {
 
   const [panelData, setPanelData] = useState({ takvimNotlari: {}, notKagidi: "" });
 
-  const [dersData, setDersData] = useState({
+  const defaultDersData = {
     sinavTuru: "kpss_ortaogretim",
     sinavTarihi: getNextExamDate(SINAV_MUFREDATLARI.kpss_ortaogretim.varsayilanTarih),
     dersler: createCurriculum("kpss_ortaogretim"),
@@ -153,9 +166,29 @@ export const AppProvider = ({ children }) => {
     calismaGunleri: {},
     hedefler: [],
     calismaPlani: []
-  });
+  };
+
+  const normalizeDersData = (incoming = null) => {
+    const source = incoming && typeof incoming === 'object' ? incoming : {};
+    return {
+      ...defaultDersData,
+      ...source,
+      dersler: Array.isArray(source.dersler) ? source.dersler : defaultDersData.dersler,
+      denemeler: Array.isArray(source.denemeler) ? source.denemeler : [],
+      yanlislar: Array.isArray(source.yanlislar) ? source.yanlislar : [],
+      calismaGunleri: source.calismaGunleri && typeof source.calismaGunleri === 'object' ? source.calismaGunleri : {},
+      hedefler: Array.isArray(source.hedefler) ? source.hedefler : [],
+      calismaPlani: Array.isArray(source.calismaPlani) ? source.calismaPlani : [],
+      sinavTuru: source.sinavTuru || defaultDersData.sinavTuru,
+      sinavTarihi: source.sinavTarihi || defaultDersData.sinavTarihi
+    };
+  };
+
+  const [dersData, setDersData] = useState(() => normalizeDersData());
 
   const [isData, setIsData] = useState({ projeler: [], fikirler: "", hizliNotlar: [] });
+  const [sportData, setSportData] = useState({ sporTuru: 'Fitness', kayitlar: [], hareketler: [] });
+  const [personalData, setPersonalData] = useState({ modlar: {}, aliskanliklar: [], aliskanlikKayitlari: {}, listeler: [], kitaplar: [], medya: [], regl: { baslangic: '', sure: 5, not: '' }, gelirler: [], giderler: [], maasGunu: 1, abonelikler: [] });
 
   const [weeklyHabits, setWeeklyHabits] = useState([{ id: 'h1', name: 'KPSS Soru Çözümü', history: {} }, { id: 'h2', name: 'Kitap Okuma', history: {} }]);
   const [monthlyHabits, setMonthlyHabits] = useState([{ id: 'm1', name: 'Derin Çalışma (Deep Work)', history: {} }]);
@@ -205,14 +238,31 @@ export const AppProvider = ({ children }) => {
       if (stateError) console.error('Uygulama verileri okunamadı:', stateError);
       if (savedState?.data) {
         const saved = savedState.data;
+        if (Array.isArray(saved.pages) && saved.pages.length > 0) setPages(saved.pages);
         if (saved.tabs) setTabs(saved.tabs);
-        if (saved.widgetLayouts) setWidgetLayouts(saved.widgetLayouts);
-        if (saved.activeTabByPage) setActiveTabByPage(saved.activeTabByPage);
+        if (saved.widgetLayouts) {
+          const mergedLayouts = { ...defaultWidgets, ...(saved.widgetLayouts || {}) };
+          Object.keys(mergedLayouts).forEach(panelId => {
+            if (!Array.isArray(mergedLayouts[panelId])) {
+              mergedLayouts[panelId] = defaultWidgets[panelId] || [];
+            }
+          });
+          setWidgetLayouts(mergedLayouts);
+        }
+        if (saved.activeTabByPage) {
+          setActiveTabByPage({
+            ana: saved.activeTabByPage.ana || 'ana',
+            is: saved.activeTabByPage.is || 'is',
+            ders: saved.activeTabByPage.ders || 'ders_genel'
+          });
+        }
         if (saved.categories) setCategories(saved.categories);
         if (saved.tasks) setTasks(saved.tasks);
         if (saved.panelData) setPanelData(saved.panelData);
-        if (saved.dersData) setDersData(saved.dersData);
+        if (saved.dersData) setDersData(normalizeDersData(saved.dersData));
         if (saved.isData) setIsData(saved.isData);
+        if (saved.sportData) setSportData(saved.sportData);
+        if (saved.personalData) setPersonalData(saved.personalData);
         if (saved.weeklyHabits) setWeeklyHabits(saved.weeklyHabits);
         if (saved.monthlyHabits) setMonthlyHabits(saved.monthlyHabits);
         if (saved.timelineProjects) setTimelineProjects(saved.timelineProjects);
@@ -240,7 +290,7 @@ export const AppProvider = ({ children }) => {
   }, [userName, userAvatar, theme, accentColor, iconStyle, user, profileLoaded]);
   useEffect(() => {
     if (!user || !appDataLoaded) return;
-    const data = { tabs, widgetLayouts, activeTabByPage, categories, tasks, panelData, dersData, isData, weeklyHabits, monthlyHabits, timelineProjects, uiScale };
+    const data = { pages, tabs, widgetLayouts, activeTabByPage, categories, tasks, panelData, dersData, isData, sportData, personalData, weeklyHabits, monthlyHabits, timelineProjects, uiScale };
     supabase.from('widget_data').upsert({
       user_id: user.id,
       widget_id: 'app-state',
@@ -250,7 +300,7 @@ export const AppProvider = ({ children }) => {
     }, { onConflict: 'user_id,widget_id,panel_id' }).then(({ error }) => {
       if (error) console.error('Uygulama verileri kaydedilemedi:', error);
     });
-  }, [user, appDataLoaded, tabs, widgetLayouts, activeTabByPage, categories, tasks, panelData, dersData, isData, weeklyHabits, monthlyHabits, timelineProjects, uiScale]);
+  }, [user, appDataLoaded, pages, tabs, widgetLayouts, activeTabByPage, categories, tasks, panelData, dersData, isData, sportData, personalData, weeklyHabits, monthlyHabits, timelineProjects, uiScale]);
 
   const simgesi = (emoji) => {
     if (iconStyle === "svg" && VEKTOR_IKONLAR[emoji]) {
@@ -287,6 +337,38 @@ export const AppProvider = ({ children }) => {
     setTabs(prev => ({ ...prev, [sayfaTuru]: [...(prev?.[sayfaTuru] || []), newTab] }));
     setActiveTabByPage(prev => ({ ...prev, [sayfaTuru]: newId }));
     setWidgetLayouts(prev => ({ ...prev, [newId]: [] }));
+  };
+
+  const addPageFromTemplate = (templateId, pageName) => {
+    const template = PAGE_TEMPLATES.find(item => item.id === templateId);
+    if (!template) return;
+    const pageId = template.builtinId || `sayfa_${templateId}_${Date.now()}`;
+    const firstTabId = template.builtinId ? template.tabs[0].id : `${pageId}_genel`;
+    const pageTabs = template.tabs.map(tab => ({ ...tab, id: template.builtinId ? tab.id : (tab.id === `${templateId}_genel` ? firstTabId : `${pageId}_${tab.id}`) }));
+    const page = { id: pageId, ad: pageName?.trim() || template.ad, ikon: template.ikon, sabit: false, templateId };
+    setPages(prev => prev.some(item => item.id === pageId) ? prev : [...prev, page]);
+    setTabs(prev => ({ ...prev, [pageId]: pageTabs }));
+    setActiveTabByPage(prev => ({ ...prev, [pageId]: firstTabId }));
+    setWidgetLayouts(prev => ({ ...prev, [firstTabId]: template.widgets }));
+    setActivePage(pageId);
+    return pageId;
+  };
+
+  const deletePage = (pageId) => {
+    const fallbackPage = pages.find(page => page.id !== pageId)?.id || 'ayarlar';
+    setPages(prev => prev.filter(page => page.id !== pageId));
+    setActivePage(current => current === pageId ? fallbackPage : current);
+    setTabs(prev => {
+      const next = { ...prev };
+      delete next[pageId];
+      return next;
+    });
+    setActiveTabByPage(prev => {
+      const next = { ...prev };
+      delete next[pageId];
+      return next;
+    });
+    setActivePage(prev => prev === pageId ? 'ana' : prev);
   };
 
   const deleteTab = (sayfaTuru, tabId) => {
@@ -400,16 +482,20 @@ export const AppProvider = ({ children }) => {
       userName, setUserName,
       userAvatar, setUserAvatar,
       activePage, setActivePage,
+      pages, setPages, addPageFromTemplate, deletePage,
       activeDersTab, setActiveDersTab,
       tabs: tabs || defaultTabs, setTabs,
       activeTabByPage: activeTabByPage || { ana: "ana", is: "is", ders: "ders_genel" }, setActiveTabByPage, addTab, deleteTab,
-      widgetLayouts: widgetLayouts || defaultWidgets, isEditMode, setIsEditMode,
+      widgetLayouts: widgetLayouts || defaultWidgets, getSafeWidgetLayout, isEditMode, setIsEditMode,
       updateWidgetWidth, toggleWidgetVisibility, reorderWidgets, resetWidgets,
       categories: categories || defaultCategories, setCategories, addCategory, deleteCategory,
       tasks: tasks || [], setTasks, addTask, toggleTask, deleteTask, toggleTaskHomeVisibility,
       panelData: panelData || { takvimNotlari: {}, notKagidi: "" }, setPanelData,
-      dersData: dersData || { dersler: [], denemeler: [], yanlislar: [], hedefler: [], calismaPlani: [] }, setDersData,
+      dersData: normalizeDersData(dersData), setDersData: (updater) => {
+        setDersData(prev => normalizeDersData(typeof updater === 'function' ? updater(prev || defaultDersData) : updater));
+      },
       isData: isData || { projeler: [], fikirler: "", hizliNotlar: [] }, setIsData,
+      sportData, setSportData, personalData, setPersonalData,
       weeklyHabits, setWeeklyHabits,
       monthlyHabits, setMonthlyHabits,
       timelineProjects, setTimelineProjects,

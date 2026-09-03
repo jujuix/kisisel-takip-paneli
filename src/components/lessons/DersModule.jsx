@@ -175,7 +175,7 @@ export const DenemeEkleWidget = () => {
 
 // --- 3. DENEME GEÇMİŞİ WIDGET ---
 export const DenemeGecmisiWidget = () => {
-  const { dersData } = useApp();
+  const { dersData, simgesi } = useApp();
   const [examDetailModal, setExamDetailModal] = useState(null);
 
   return (
