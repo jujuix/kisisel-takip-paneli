@@ -18,7 +18,7 @@ export const getStreak = dates => {
   return streak;
 };
 
-export const MonthCalendar = ({ markedDates = {}, onSelect, selectedDate, colorForDate }) => {
+export const MonthCalendar = ({ markedDates = {}, onSelect, selectedDate, colorForDate, disableFuture = true }) => {
   const [month, setMonth] = React.useState(() => new Date());
   const year = month.getFullYear();
   const monthIndex = month.getMonth();
@@ -40,7 +40,8 @@ export const MonthCalendar = ({ markedDates = {}, onSelect, selectedDate, colorF
       {days.map(day => {
         const key = dateKey(new Date(year, monthIndex, day));
         const marked = Boolean(markedDates[key]);
-        return <button type="button" key={key} className={`${marked ? 'isaretli' : ''} ${selectedDate === key ? 'secili' : ''}`} style={colorForDate ? { '--takvim-renk': colorForDate(key) || 'transparent' } : undefined} onClick={() => onSelect?.(key)}>{day}</button>;
+        const isFuture = disableFuture && key > dateKey(new Date());
+        return <button type="button" key={key} disabled={isFuture} className={`${marked ? 'isaretli' : ''} ${selectedDate === key ? 'secili' : ''} ${isFuture ? 'gelecek' : ''}`} style={colorForDate ? { '--takvim-renk': colorForDate(key) || 'transparent' } : undefined} onClick={() => !isFuture && onSelect?.(key)}>{day}</button>;
       })}
     </div>
   </div>;

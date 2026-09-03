@@ -2,282 +2,113 @@ import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
+import { PAGE_TEMPLATES } from '../constants';
+
+const STARTER_PAGES = PAGE_TEMPLATES.filter(page => ['ders', 'is', 'spor', 'gunluk'].includes(page.builtinId || page.id));
 
 export const LoginScreen = () => {
   const { signIn, signUp } = useAuth();
   const { simgesi } = useApp();
-  const [mode, setMode] = useState('giris'); // giris | kayit
+  const [mode, setMode] = useState('giris');
+  const [signupStep, setSignupStep] = useState(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [selectedPages, setSelectedPages] = useState(['ders', 'is', 'spor', 'gunluk']);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const switchMode = nextMode => {
+    setMode(nextMode);
+    setSignupStep(1);
     setError('');
     setInfo('');
-    setLoading(true);
+  };
 
-    if (mode === 'giris') {
-      const { error } = await signIn(email, password);
-      if (error) setError(error.message);
-    } else {
-      const cleanName = displayName.trim();
-      if (!cleanName) {
-        setError('İsim yazmak zorunlu.');
-        setLoading(false);
-        return;
-      }
-      if (cleanName.length > 30) {
-        setError('İsim en fazla 30 karakter olabilir.');
-        setLoading(false);
-        return;
-      }
-      const { data, error } = await signUp(email, password, cleanName);
-      if (error) {
-        setError(error.message);
-      } else if (data?.user && !data?.session) {
-        try {
-          await supabase.from('profiles').upsert({
-            id: data.user.id,
-            user_name: cleanName
-          }, { onConflict: 'id' });
-        } catch (profileError) {
-          console.error('Profil kaydı oluşturulamadı:', profileError);
-        }
-        setInfo('Kayıt başarılı! E-postana gelen bağlantıya tıklayıp giriş yapabilirsin.');
-        setDisplayName('');
-      }
+  const handleSubmit = async event => {
+    event.preventDefault();
+    setError('');
+    setInfo('');
+
+    if (mode === 'kayit' && signupStep === 1) {
+      if (!email.trim()) { setError('E-posta adresini yazmalısın.'); return; }
+      if (password.length < 6) { setError('Şifre en az 6 karakter olmalı.'); return; }
+      setSignupStep(2);
+      return;
     }
 
+    setLoading(true);
+    if (mode === 'giris') {
+      const result = await signIn(email, password);
+      if (result.error) setError(result.error.message);
+    } else {
+      const cleanName = displayName.trim();
+      if (!cleanName) setError('İsim yazmak zorunlu.');
+      else if (cleanName.length > 30) setError('İsim en fazla 30 karakter olabilir.');
+      else if (selectedPages.length === 0) setError('En az bir sayfa seçmelisin.');
+      else {
+        const result = await signUp(email, password, cleanName, ['ana', ...selectedPages]);
+        if (result.error) setError(result.error.message);
+        else if (result.data?.user && !result.data?.session) {
+          await supabase.from('profiles').upsert({ id: result.data.user.id, user_name: cleanName }, { onConflict: 'id' });
+          setInfo('Kayıt başarılı! E-postana gelen bağlantıyla giriş yapabilirsin.');
+          setDisplayName('');
+          setSignupStep(1);
+        }
+      }
+    }
     setLoading(false);
   };
 
-  return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'var(--renk-arkaplan)',
-      padding: '24px'
-    }}>
-      <div style={{
-        display: 'flex',
-        width: '100%',
-        maxWidth: '980px',
-        minHeight: '540px',
-        borderRadius: '28px',
-        overflow: 'hidden',
-        boxShadow: '0 30px 70px rgba(0,0,0,0.15)',
-        background: 'var(--renk-yuzey)'
-      }}>
-        {/* SOL PANEL - Marka */}
-        <div style={{
-          flex: '0 0 46%',
-          position: 'relative',
-          background: 'var(--renk-arkaplan)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '56px',
-          overflow: 'hidden',
-          backgroundImage: 'radial-gradient(var(--renk-kenarlik) 1px, transparent 1px)',
-          backgroundSize: '18px 18px'
-        }}>
-          {/* Dekoratif noktalar */}
-          <div style={{ position: 'absolute', top: '60px', left: '40px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--renk-vurgu)', opacity: 0.4 }} />
-          <div style={{ position: 'absolute', bottom: '90px', right: '70px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--renk-vurgu)', opacity: 0.3 }} />
+  const isSignupDetails = mode === 'kayit' && signupStep === 2;
+  const showCredentials = mode === 'giris' || signupStep === 1;
 
-          {/* Yüzen ikon kartları */}
-          <div style={{
-            position: 'absolute', top: '70px', right: '80px',
-            width: '54px', height: '54px', borderRadius: '14px',
-            background: 'var(--renk-yuzey)', boxShadow: '0 10px 24px rgba(0,0,0,0.08)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px'
-          }}>
-            {simgesi("📅")}
-          </div>
-          <div style={{
-            position: 'absolute', top: '20px', left: '130px',
-            width: '54px', height: '54px', borderRadius: '14px',
-            background: 'var(--renk-yuzey)', boxShadow: '0 10px 24px rgba(0,0,0,0.08)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px'
-          }}>
-            {simgesi("✅")}
-          </div>
-          <div style={{
-            position: 'absolute', bottom: '110px', right: '30px',
-            width: '54px', height: '54px', borderRadius: '14px',
-            background: 'var(--renk-yuzey)', boxShadow: '0 10px 24px rgba(0,0,0,0.08)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px'
-          }}>
-            {simgesi("📊")}
-          </div>
+  return <div className="login-ekrani">
+    <div className="login-kapsayici">
+      <section className="login-marka-paneli">
+        <div className="login-yuzen-ikon login-ikon-1">{simgesi('📅')}</div>
+        <div className="login-yuzen-ikon login-ikon-2">{simgesi('✅')}</div>
+        <div className="login-yuzen-ikon login-ikon-3">{simgesi('📊')}</div>
+        <div className="login-marka-icerik">
+          <div className="login-logo">vion<span>.</span></div>
+          <h1>Planla. Odaklan. <span>İlerle.</span></h1>
+          <p>İşlerini, derslerini ve günlük planını tek yerde yönet.</p>
+        </div>
+      </section>
 
-          <div style={{ position: 'relative', marginTop: '60px' }}>
-            <div style={{
-              fontSize: '48px', fontWeight: '800', letterSpacing: '-1px',
-              color: 'var(--renk-metin)', marginBottom: '18px',
-              display: 'flex', alignItems: 'flex-end'
-            }}>
-              vion
-              <span style={{ color: 'var(--renk-vurgu)' }}>.</span>
-            </div>
-
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '22px', fontWeight: '700', color: 'var(--renk-metin)' }}>
-              Planla. Odaklan. <span style={{ color: 'var(--renk-vurgu)' }}>İlerle.</span>
-            </h3>
-
-            <p style={{ margin: 0, fontSize: '14px', color: 'var(--renk-metin-ikincil)', lineHeight: 1.6, maxWidth: '280px' }}>
-              İşlerini, derslerini ve günlük planını tek yerde yönet.
-            </p>
-          </div>
+      <section className="login-form-paneli">
+        <div className="login-form-ust">
+          <span className="login-adim">{mode === 'giris' ? 'HESABINA DÖN' : isSignupDetails ? '2 / 2  •  SANA ÖZEL BAŞLANGIÇ' : '1 / 2  •  HESAP OLUŞTUR'}</span>
+          <h2>{mode === 'giris' ? 'Hoş geldin! 👋' : isSignupDetails ? 'Alanını seç.' : 'Aramıza katıl! 🚀'}</h2>
+          <p>{mode === 'giris' ? 'vion hesabına giriş yap.' : isSignupDetails ? 'Panelini kullanmak istediğin alanlarla başlat.' : 'Önce giriş bilgilerini belirleyelim.'}</p>
         </div>
 
-        {/* SAĞ PANEL - Form */}
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '56px 60px',
-          background: 'var(--renk-yuzey)'
-        }}>
-          <h2 style={{ margin: '0 0 4px 0', fontSize: '22px', fontWeight: '800', color: 'var(--renk-metin)' }}>
-            {mode === 'giris' ? 'Hoş geldin! 👋' : 'Aramıza katıl! 🚀'}
-          </h2>
-          <p style={{ margin: '0 0 28px 0', fontSize: '13.5px', color: 'var(--renk-metin-ikincil)' }}>
-            {mode === 'giris' ? (
-              <>vion<span style={{ color: 'var(--renk-vurgu)' }}>.</span> hesabına giriş yap</>
-            ) : (
-              <>vion<span style={{ color: 'var(--renk-vurgu)' }}>.</span> hesabı oluştur</>
-            )}
-          </p>
+        <form key={`${mode}-${signupStep}`} className="login-form" onSubmit={handleSubmit}>
+          {showCredentials && <>
+            <label className="login-alan"><span>E-posta</span><div><span>{simgesi('✉️')}</span><input type="email" placeholder="E-posta adresiniz" value={email} onChange={event => setEmail(event.target.value)} required /></div></label>
+            <label className="login-alan"><span>Şifre</span><div><span>{simgesi('🔒')}</span><input type={showPassword ? 'text' : 'password'} placeholder="En az 6 karakter" value={password} onChange={event => setPassword(event.target.value)} required minLength={6} /><button type="button" className="login-sifre-goster" onClick={() => setShowPassword(value => !value)} aria-label="Şifreyi göster veya gizle">{showPassword ? '🙈' : '👁️'}</button></div></label>
+          </>}
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-            {mode === 'kayit' && (
-              <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: 'var(--renk-metin)', marginBottom: '6px' }}>
-                  İsim
-                </label>
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '10px',
-                  border: '1px solid var(--renk-kenarlik)', borderRadius: '10px',
-                  padding: '11px 14px', background: 'var(--renk-arkaplan)'
-                }}>
-                  <input
-                    type="text"
-                    placeholder="İsminiz"
-                    value={displayName}
-                    maxLength={30}
-                    onChange={e => setDisplayName(e.target.value.slice(0, 30))}
-                    required
-                    style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', color: 'var(--renk-metin)', fontSize: '13.5px' }}
-                  />
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: 'var(--renk-metin)', marginBottom: '6px' }}>
-                E-posta
-              </label>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                border: '1px solid var(--renk-kenarlik)', borderRadius: '10px',
-                padding: '11px 14px', background: 'var(--renk-arkaplan)'
-              }}>
-                <span style={{ opacity: 0.5, fontSize: '14px' }}>{simgesi("✉️")}</span>
-                <input
-                  type="email"
-                  placeholder="E-posta adresiniz"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', color: 'var(--renk-metin)', fontSize: '13.5px' }}
-                />
-              </div>
+          {isSignupDetails && <>
+            <label className="login-alan"><span>İsmin</span><div><span>{simgesi('👋')}</span><input type="text" placeholder="Sana nasıl hitap edelim?" value={displayName} maxLength={30} onChange={event => setDisplayName(event.target.value.slice(0, 30))} required /></div></label>
+            <div className="kayit-sayfa-secimi">
+              <div className="kayit-sayfa-baslik"><div><strong>Başlangıç sayfaların</strong><span>Panel otomatik gelir.</span></div><b>Panel + {selectedPages.length}/4</b></div>
+              <div className="kayit-sayfa-secenekleri">{STARTER_PAGES.map(page => { const id = page.builtinId || page.id; return <label key={id} className={`kayit-sayfa-secenegi ${selectedPages.includes(id) ? 'aktif' : ''}`}><input type="checkbox" checked={selectedPages.includes(id)} onChange={() => setSelectedPages(previous => previous.includes(id) ? previous.filter(item => item !== id) : [...previous, id])} /><span>{page.ikon}</span><strong>{page.ad}</strong></label>; })}</div>
+              <p>Sayfaları daha sonra Ayarlar bölümünden ekleyebilir veya kaldırabilirsin.</p>
             </div>
+          </>}
 
-            <div>
-              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: 'var(--renk-metin)', marginBottom: '6px' }}>
-                Şifre
-              </label>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: '10px',
-                border: '1px solid var(--renk-kenarlik)', borderRadius: '10px',
-                padding: '11px 14px', background: 'var(--renk-arkaplan)'
-              }}>
-                <span style={{ opacity: 0.5, fontSize: '14px' }}>{simgesi("🔒")}</span>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Şifreniz"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  minLength={6}
-                  style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', color: 'var(--renk-metin)', fontSize: '13.5px' }}
-                />
-                <span
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{ cursor: 'pointer', opacity: 0.5, fontSize: '14px' }}
-                  title={showPassword ? 'Gizle' : 'Göster'}
-                >
-                  {showPassword ? '🙈' : '👁️'}
-                </span>
-              </div>
-            </div>
+          {mode === 'giris' && <label className="login-hatirla"><span><input type="checkbox" checked={rememberMe} onChange={event => setRememberMe(event.target.checked)} /> Beni hatırla</span><button type="button">Şifremi unuttum?</button></label>}
+          {error && <div className="login-mesaj hata">{error}</div>}
+          {info && <div className="login-mesaj bilgi">{info}</div>}
+          <button className="login-ana-buton" type="submit" disabled={loading}>{loading ? 'Bekleyin...' : mode === 'giris' ? 'Giriş Yap' : isSignupDetails ? 'Hesabımı Oluştur' : 'Devam Et'}</button>
+        </form>
 
-            {mode === 'giris' && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '12.5px', color: 'var(--renk-metin-ikincil)', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
-                  Beni hatırla
-                </label>
-                <span style={{ fontSize: '12.5px', color: 'var(--renk-vurgu)', fontWeight: '600', cursor: 'pointer' }}>
-                  Şifremi unuttum?
-                </span>
-              </div>
-            )}
-
-            {error && <div style={{ color: '#ff6961', fontSize: '12.5px' }}>{error}</div>}
-            {info && <div style={{ color: 'var(--renk-vurgu)', fontSize: '12.5px' }}>{info}</div>}
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                padding: '13px', borderRadius: '10px', border: 'none',
-                background: 'var(--renk-vurgu)', color: '#fff',
-                fontWeight: '700', fontSize: '14px', cursor: 'pointer',
-                boxShadow: '0 8px 20px var(--renk-vurgu-halka)',
-                marginTop: '4px'
-              }}
-            >
-              {loading ? 'Bekleyin...' : mode === 'giris' ? 'Giriş Yap' : 'Kayıt Ol'}
-            </button>
-          </form>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '22px 0' }}>
-            <div style={{ flex: 1, height: '1px', background: 'var(--renk-kenarlik)' }} />
-            <span style={{ fontSize: '12px', color: 'var(--renk-metin-ikincil)' }}>veya</span>
-            <div style={{ flex: 1, height: '1px', background: 'var(--renk-kenarlik)' }} />
-          </div>
-
-          <div style={{ textAlign: 'center', fontSize: '13px', color: 'var(--renk-metin-ikincil)' }}>
-            {mode === 'giris' ? (
-              <>Hesabın yok mu? <span onClick={() => setMode('kayit')} style={{ color: 'var(--renk-vurgu)', fontWeight: '700', cursor: 'pointer' }}>Kayıt ol</span></>
-            ) : (
-              <>Zaten hesabın var mı? <span onClick={() => setMode('giris')} style={{ color: 'var(--renk-vurgu)', fontWeight: '700', cursor: 'pointer' }}>Giriş yap</span></>
-            )}
-          </div>
-        </div>
-      </div>
+        <div className="login-degisir"><span>{mode === 'giris' ? 'Hesabın yok mu?' : 'Zaten hesabın var mı?'}</span><button type="button" onClick={() => switchMode(mode === 'giris' ? 'kayit' : 'giris')}>{mode === 'giris' ? 'Kayıt ol' : 'Giriş yap'}</button></div>
+      </section>
     </div>
-  );
+  </div>;
 };

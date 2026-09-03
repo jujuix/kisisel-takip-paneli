@@ -48,6 +48,7 @@ export const PAGE_TEMPLATES = [
   },
   {
     id: "spor",
+    builtinId: "spor",
     ad: "Spor",
     ikon: "🏋️",
     aciklama: "Antrenmanlarını, hareketlerini ve sürelerini takip et.",
@@ -60,6 +61,7 @@ export const PAGE_TEMPLATES = [
   },
   {
     id: "gunluk",
+    builtinId: "gunluk",
     ad: "Kişisel Günlük",
     ikon: "📔",
     aciklama: "Günlük yaşamını, listelerini ve bütçeni tek yerde düzenle.",

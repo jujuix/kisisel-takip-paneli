@@ -225,14 +225,15 @@ export const AppProvider = ({ children }) => {
         supabase.from('widget_data').select('data').eq('user_id', user.id).eq('widget_id', 'app-state').eq('panel_id', 'global').maybeSingle()
       ]);
 
+      const metadataName = (user.user_metadata?.user_name || '').trim();
       if (profile) {
-        setUserName(profile.user_name || 'Kişisel Panel');
+        setUserName(profile.user_name || metadataName || 'Kişisel Panel');
         try { setUserAvatar(profile.avatar_url ? JSON.parse(profile.avatar_url) : null); } catch { setUserAvatar(null); }
         setTheme(profile.theme || 'acik');
         setAccentColor(profile.accent_color || '#10b981');
         setIconStyle(profile.icon_style || 'emoji');
       } else if (!profile) {
-        const { error: insertError } = await supabase.from('profiles').insert({ id: user.id });
+        const { error: insertError } = await supabase.from('profiles').insert({ id: user.id, user_name: metadataName || 'Kişisel Panel' });
         if (insertError) console.error('Profil oluşturulamadı:', insertError);
       }
       if (stateError) console.error('Uygulama verileri okunamadı:', stateError);
@@ -267,6 +268,18 @@ export const AppProvider = ({ children }) => {
         if (saved.monthlyHabits) setMonthlyHabits(saved.monthlyHabits);
         if (saved.timelineProjects) setTimelineProjects(saved.timelineProjects);
         if (saved.uiScale) setUiScale(saved.uiScale);
+      } else if (Array.isArray(user.user_metadata?.selected_pages) && user.user_metadata.selected_pages.length > 0) {
+        const selected = new Set(user.user_metadata.selected_pages);
+        const selectedTemplates = PAGE_TEMPLATES
+          .filter(template => selected.has(template.builtinId || template.id))
+        const selectedDefinitions = selectedTemplates.map(template => ({ id: template.builtinId || template.id, ad: template.ad, ikon: template.ikon, sabit: true, templateId: template.id }));
+        const selectedTabs = selectedTemplates.reduce((result, template) => ({ ...result, [template.builtinId || template.id]: template.tabs }), {});
+        const selectedLayouts = selectedTemplates.reduce((result, template) => ({ ...result, [template.tabs[0].id]: template.widgets }), {});
+        const selectedActiveTabs = selectedTemplates.reduce((result, template) => ({ ...result, [template.builtinId || template.id]: template.tabs[0].id }), {});
+        setPages(selectedDefinitions);
+        setTabs(prev => ({ ...prev, ...selectedTabs }));
+        setWidgetLayouts(prev => ({ ...prev, ...selectedLayouts }));
+        setActiveTabByPage(prev => ({ ...prev, ...selectedActiveTabs }));
       }
       setProfileLoaded(true);
       setAppDataLoaded(true);

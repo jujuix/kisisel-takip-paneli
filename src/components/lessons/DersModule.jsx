@@ -357,6 +357,7 @@ export const CalismaTakvimWidget = () => {
 
   const toggleDay = (day) => {
     const dateKey = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+    if (dateKey > new Date().toISOString().split('T')[0]) return;
     setDersData(prev => ({
       ...prev,
       calismaGunleri: { ...prev.calismaGunleri, [dateKey]: !prev.calismaGunleri?.[dateKey] }
@@ -382,11 +383,13 @@ export const CalismaTakvimWidget = () => {
           const dateKey = `${monthPrefix}-${String(day).padStart(2, '0')}`;
           const isWorked = !!dersData.calismaGunleri?.[dateKey];
           const isToday = dateKey === new Date().toISOString().split('T')[0];
+          const isFuture = dateKey > new Date().toISOString().split('T')[0];
           return (
             <button
               type="button"
               key={dateKey}
-              className={`heatmap-gun ${isWorked ? 'dolu' : ''} ${isToday ? 'bugun' : ''}`}
+              className={`heatmap-gun ${isWorked ? 'dolu' : ''} ${isToday ? 'bugun' : ''} ${isFuture ? 'gelecek' : ''}`}
+              disabled={isFuture}
               title={`${dateKey}: ${isWorked ? 'Çalışıldı' : 'Çalışılmadı'}`}
               onClick={() => toggleDay(day)}
             >

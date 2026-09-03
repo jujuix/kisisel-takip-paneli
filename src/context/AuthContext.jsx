@@ -20,13 +20,13 @@ export const AuthProvider = ({ children }) => {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email, password, displayName = '') => {
+  const signUp = async (email, password, displayName = '', selectedPages = []) => {
     const cleanName = (displayName || '').trim();
     return await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { user_name: cleanName }
+        data: { user_name: cleanName, selected_pages: selectedPages }
       }
     });
   };
