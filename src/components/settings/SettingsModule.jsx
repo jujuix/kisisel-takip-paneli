@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { EMOJI_HAVUZU, PAGE_TEMPLATES } from '../../constants';
+import { getTranslations } from '../../i18n';
 
 export const SettingsModule = () => {
   const { 
@@ -9,10 +10,12 @@ export const SettingsModule = () => {
     iconStyle, setIconStyle, 
     uiScale, setUiScale,
     simgesi,
+    language, setLanguage,
     pages = [], addPageFromTemplate, deletePage, updatePage,
     dersData, setDersData, 
     showConfirm 
   } = useApp();
+  const t = getTranslations(language).pages;
   const [isCustomColorOpen, setIsCustomColorOpen] = useState(false);
   const [customColor, setCustomColor] = useState(accentColor);
   const [selectedTemplate, setSelectedTemplate] = useState('spor');
@@ -128,19 +131,26 @@ export const SettingsModule = () => {
       <div className="ders-karti ayar-sayfa-yonetimi" style={{ marginBottom: '18px' }}>
         <div className="section-header">
           <div className="ayar-baslik-grubu">
-            <h2>🧩 Sayfalarım</h2>
-            <p>Hazır bir çalışma alanı ekle veya artık kullanmadığın sayfayı kaldır.</p>
+            <h2>{simgesi('🧩')} {t.title}</h2>
+            <p>{t.description}</p>
           </div>
+        </div>
+        <div className="ayar-dil-secici">
+          <span>Language / Dil</span>
+          <select value={language} onChange={event => setLanguage(event.target.value)} aria-label="Language / Dil">
+            <option value="tr">Türkçe</option>
+            <option value="en">English</option>
+          </select>
         </div>
         <div className="ayar-sayfa-ekle">
           <select value={selectedTemplate} onChange={e => setSelectedTemplate(e.target.value)}>
             {PAGE_TEMPLATES.map(template => <option key={template.id} value={template.id}>{template.ikon} {template.ad}</option>)}
           </select>
-          <input type="text" value={newPageName} maxLength={30} onChange={e => setNewPageName(e.target.value)} placeholder="Sayfa adı (isteğe bağlı)" />
+          <input type="text" value={newPageName} maxLength={30} onChange={e => setNewPageName(e.target.value)} placeholder={t.optionalName} />
           <div className="ayar-ikon-secici" aria-label="Yeni sayfa ikonu">
             {EMOJI_HAVUZU.slice(0, 18).map(icon => <button key={icon} type="button" className={newPageIcon === icon ? 'aktif' : ''} onClick={() => setNewPageIcon(icon)} aria-label={`${icon} ikonunu seç`}>{simgesi(icon)}</button>)}
           </div>
-          <button type="button" className="ders-buyuk-buton" onClick={handleAddPage}>+ Sayfa Ekle</button>
+          <button type="button" className="ders-buyuk-buton" onClick={handleAddPage}>+ {t.add}</button>
         </div>
         <div className="ayar-sayfa-listesi">
           {pages.map(page => (
@@ -154,8 +164,8 @@ export const SettingsModule = () => {
                 </div>
               ) : <span className="ayar-sayfa-adi">{simgesi(page.ikon)} {page.ad}</span>}
               <div className="ayar-sayfa-eylemleri">
-                {editingPageId === page.id ? <><button type="button" className="ayar-sayfa-kaydet" onClick={savePage}>Kaydet</button><button type="button" className="ayar-sayfa-iptal" onClick={() => setEditingPageId(null)}>İptal</button></> : <button type="button" className="ayar-sayfa-duzenle-btn" onClick={() => startEditingPage(page)}>Düzenle</button>}
-                <button type="button" className="ayar-sayfa-sil" onClick={() => showConfirm({ title: 'Sayfayı Kaldır', message: `${page.ad} sayfası ve sekmeleri kaldırılacak. Devam edilsin mi?`, confirmText: 'Kaldır', isDanger: true, onConfirm: () => deletePage(page.id) })}>Kaldır</button>
+                {editingPageId === page.id ? <><button type="button" className="ayar-sayfa-kaydet" onClick={savePage}>{t.save}</button><button type="button" className="ayar-sayfa-iptal" onClick={() => setEditingPageId(null)}>{t.cancel}</button></> : <button type="button" className="ayar-sayfa-duzenle-btn" onClick={() => startEditingPage(page)}>{t.edit}</button>}
+                <button type="button" className="ayar-sayfa-sil" onClick={() => showConfirm({ title: t.removeTitle, message: `${page.ad}${t.removeMessage}`, confirmText: t.remove, isDanger: true, onConfirm: () => deletePage(page.id) })}>{t.remove}</button>
               </div>
             </div>
           ))}

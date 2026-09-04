@@ -7,6 +7,11 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const { user } = useAuth();
+  const [language, setLanguageState] = useState(() => localStorage.getItem('vion-language') || 'tr');
+  const setLanguage = (nextLanguage) => {
+    setLanguageState(nextLanguage);
+    localStorage.setItem('vion-language', nextLanguage);
+  };
   const [theme, setTheme] = useState('acik');
   const [accentColor, setAccentColor] = useState('#10b981');
   const [iconStyle, setIconStyle] = useState('emoji');
@@ -232,6 +237,7 @@ export const AppProvider = ({ children }) => {
         setTheme(profile.theme || 'acik');
         setAccentColor(profile.accent_color || '#10b981');
         setIconStyle(profile.icon_style || 'emoji');
+        if (profile.language) setLanguage(profile.language);
       } else if (!profile) {
         const { error: insertError } = await supabase.from('profiles').insert({ id: user.id, user_name: metadataName || 'Kişisel Panel' });
         if (insertError) console.error('Profil oluşturulamadı:', insertError);
@@ -297,10 +303,11 @@ export const AppProvider = ({ children }) => {
       theme,
       accent_color: accentColor,
       icon_style: iconStyle
+      , language
     }, { onConflict: 'id' }).then(({ error }) => {
       if (error) console.error('Profil kaydedilemedi:', error);
     });
-  }, [userName, userAvatar, theme, accentColor, iconStyle, user, profileLoaded]);
+  }, [userName, userAvatar, theme, accentColor, iconStyle, language, user, profileLoaded]);
   useEffect(() => {
     if (!user || !appDataLoaded) return;
     const data = { pages, tabs, widgetLayouts, activeTabByPage, categories, tasks, panelData, dersData, isData, sportData, personalData, weeklyHabits, monthlyHabits, timelineProjects, uiScale };
@@ -508,6 +515,7 @@ export const AppProvider = ({ children }) => {
       userAvatar, setUserAvatar,
       activePage, setActivePage,
       pages, setPages, addPageFromTemplate, deletePage, updatePage,
+      language, setLanguage,
       activeDersTab, setActiveDersTab,
       tabs: tabs || defaultTabs, setTabs,
       activeTabByPage: activeTabByPage || { ana: "ana", is: "is", ders: "ders_genel" }, setActiveTabByPage, addTab, deleteTab,

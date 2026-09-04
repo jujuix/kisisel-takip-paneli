@@ -151,6 +151,8 @@
 .login-ana-buton:hover { transform: translateY(-2px); background: var(--renk-vurgu-hover); }
 .login-ana-buton:disabled { cursor: wait; opacity: 0.65; }
 .login-degisir { display: flex; justify-content: center; gap: 5px; margin-top: 22px; color: var(--renk-metin-ikincil); font-size: 13px; }
+.login-dil-secici { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 18px; color: var(--renk-metin-soluk); font-size: 11px; }
+.login-dil-secici select { padding: 6px 9px; border-color: var(--renk-kenarlik); background: var(--renk-zemin); color: var(--renk-metin); font: inherit; }
 .login-mesaj { margin-top: -4px; font-size: 12px; }
 .login-mesaj.hata { color: var(--renk-tehlike); }
 .login-mesaj.bilgi { color: var(--renk-vurgu); }
@@ -704,6 +706,9 @@ body.koyu-tema .deneme-karti {
     gap: 10px;
     margin-top: 14px;
 }
+
+.ayar-dil-secici { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 12px; color: var(--renk-metin-ikincil); font-size: var(--yazi-kucuk); font-weight: 700; }
+.ayar-dil-secici select, .login-dil-secici select { min-width: 108px; padding: 7px 10px; border-radius: var(--radius-kucuk); }
 
 .ayar-sayfa-ekle select,
 .ayar-sayfa-ekle input {
