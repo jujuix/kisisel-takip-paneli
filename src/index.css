@@ -81,18 +81,22 @@
     display: grid;
     place-items: center;
     padding: 24px;
-    background: var(--renk-zemin);
-    background-image: radial-gradient(color-mix(in srgb, var(--renk-vurgu) 14%, transparent) 1px, transparent 1px);
-    background-size: 20px 20px;
+    position: relative;
+    overflow: hidden;
+    background: #eef3ef;
+    background-image: linear-gradient(135deg, rgba(255,255,255,.75), transparent 46%), radial-gradient(circle at 9% 15%, rgba(16,185,129,.16), transparent 28%), radial-gradient(circle at 92% 86%, rgba(15,23,42,.08), transparent 30%);
 }
+.login-ekrani::before, .login-ekrani::after { content: ''; position: absolute; width: 260px; height: 260px; border: 1px solid rgba(16,185,129,.16); border-radius: 50%; pointer-events: none; }
+.login-ekrani::before { top: -130px; left: -75px; box-shadow: 0 0 0 30px rgba(16,185,129,.035), 0 0 0 60px rgba(16,185,129,.025); }
+.login-ekrani::after { right: -130px; bottom: -135px; }
 .login-kapsayici {
     display: grid;
     grid-template-columns: minmax(280px, 0.9fr) minmax(340px, 1.1fr);
-    width: min(960px, 100%);
-    min-height: 560px;
+    width: min(1040px, 100%);
+    min-height: 610px;
     overflow: hidden;
     border: 1px solid var(--renk-kenarlik);
-    border-radius: 28px;
+    border-radius: 24px;
     background: var(--renk-yuzey);
     box-shadow: 0 28px 70px color-mix(in srgb, var(--renk-vurgu) 15%, transparent);
     animation: login-kart-giris 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -103,8 +107,22 @@
     align-items: center;
     overflow: hidden;
     padding: 48px;
-    background: var(--renk-vurgu-yuzey);
+    isolation: isolate;
+    background: #102d27;
+    background-image: linear-gradient(145deg, rgba(16,185,129,.28), transparent 46%), linear-gradient(25deg, transparent 50%, rgba(255,255,255,.04) 50%);
 }
+.login-marka-paneli::before { content: ''; position: absolute; inset: 0; opacity: .14; background-image: linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px); background-size: 32px 32px; mask-image: linear-gradient(to bottom, black, transparent 80%); }
+.login-marka-ust { position: absolute; top: 30px; left: 48px; z-index: 2; color: rgba(255,255,255,.68); font-size: 10px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; }
+.login-durum-noktasi { display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #72e0b5; box-shadow: 0 0 0 4px rgba(114,224,181,.12); }
+.login-mini-paneli { position: absolute; right: 34px; bottom: 44px; z-index: 1; width: 188px; padding: 15px; border: 1px solid rgba(255,255,255,.18); border-radius: 14px; background: rgba(255,255,255,.1); box-shadow: 0 18px 40px rgba(0,0,0,.16); color: white; backdrop-filter: blur(12px); transform: rotate(3deg); animation: login-mini-giris .7s .3s ease both; }
+.login-mini-baslik, .login-mini-alt { display: flex; align-items: center; justify-content: space-between; font-size: 10px; }
+.login-mini-baslik b { color: #8ee6bd; font-size: 9px; }
+.login-mini-grafik { display: flex; align-items: end; gap: 5px; height: 55px; margin: 14px 0 12px; padding-bottom: 1px; border-bottom: 1px solid rgba(255,255,255,.15); }
+.login-mini-grafik i { display: block; flex: 1; min-height: 12px; border-radius: 4px 4px 1px 1px; background: #68dbaa; animation: login-grafik 1.2s ease-in-out infinite alternate; }
+.login-mini-grafik i:nth-child(2) { height: 28%; animation-delay: .1s; }.login-mini-grafik i:nth-child(3) { height: 54%; animation-delay: .2s; }.login-mini-grafik i:nth-child(4) { height: 38%; animation-delay: .3s; }.login-mini-grafik i:nth-child(5) { height: 76%; animation-delay: .4s; }.login-mini-grafik i:nth-child(6) { height: 62%; animation-delay: .5s; }.login-mini-grafik i:nth-child(7) { height: 92%; animation-delay: .6s; }
+.login-mini-alt { color: rgba(255,255,255,.58); }.login-mini-alt strong { display: block; color: white; font-size: 15px; }
+.login-marka-paneli .login-yuzen-ikon { border-color: rgba(255,255,255,.15); background: rgba(255,255,255,.1); box-shadow: 0 12px 25px rgba(0,0,0,.14); }
+.login-marka-paneli .login-marka-icerik { color: white; }.login-marka-paneli .login-logo, .login-marka-paneli .login-marka-icerik h1 { color: white; }.login-marka-paneli .login-marka-icerik p { color: rgba(255,255,255,.68); }
 .login-marka-icerik { position: relative; z-index: 1; max-width: 300px; animation: login-icerik-giris 0.6s 0.12s ease both; }
 .login-logo { margin-bottom: 22px; color: var(--renk-metin); font-size: 48px; font-weight: 800; letter-spacing: 0; }
 .login-logo span, .login-marka-icerik h1 span { color: var(--renk-vurgu); }
@@ -116,12 +134,14 @@
 .login-ikon-3 { right: 28px; bottom: 82px; animation-delay: 1.3s; }
 .login-form-paneli { display: flex; flex-direction: column; justify-content: center; padding: 48px 58px; background: var(--renk-yuzey); }
 .login-form-ust { margin-bottom: 24px; animation: login-icerik-giris 0.6s 0.2s ease both; }
+.login-form-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; }.login-guvenli { color: var(--renk-vurgu); font-size: 10px; font-weight: 700; }.login-ilerleme { display: flex; gap: 5px; margin-top: 12px; }.login-ilerleme span { height: 3px; flex: 1; border-radius: 10px; background: var(--renk-kenarlik); transition: background .25s ease; }.login-ilerleme span.aktif { background: var(--renk-vurgu); }
 .login-adim { color: var(--renk-vurgu); font-size: 10px; font-weight: 800; letter-spacing: 1px; }
 .login-form-ust h2 { margin: 8px 0 5px; color: var(--renk-metin); font-size: 25px; }
 .login-form-ust p { margin: 0; color: var(--renk-metin-ikincil); font-size: 13px; }
 .login-form { animation: login-form-giris 0.35s ease both; }
 .login-alan { display: grid; gap: 6px; color: var(--renk-metin); font-size: 12px; font-weight: 700; }
 .login-alan > div { display: flex; align-items: center; gap: 9px; padding: 4px 12px; border: 1px solid var(--renk-kenarlik); border-radius: 10px; background: var(--renk-zemin); color: var(--renk-metin-soluk); }
+.login-alan > div:focus-within { border-color: var(--renk-vurgu); background: var(--renk-yuzey); box-shadow: 0 0 0 4px var(--renk-vurgu-halka); }
 .login-alan input { width: 100%; padding: 8px 0; border: 0 !important; outline: 0; background: transparent !important; box-shadow: none !important; color: var(--renk-metin) !important; }
 .login-sifre-goster { border: 0; background: transparent; cursor: pointer; opacity: 0.65; }
 .login-hatirla { display: flex; justify-content: space-between; align-items: center; gap: 8px; color: var(--renk-metin-ikincil); font-size: 12px; }
@@ -139,10 +159,13 @@
 @keyframes login-icerik-giris { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
 @keyframes login-form-giris { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes login-yuzen { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(2deg); } }
+@keyframes login-mini-giris { from { opacity: 0; transform: translate(18px, 12px) rotate(3deg); } to { opacity: 1; transform: translate(0, 0) rotate(3deg); } }
+@keyframes login-grafik { from { opacity: .7; } to { opacity: 1; } }
 
 @media (max-width: 720px) {
     .login-kapsayici { grid-template-columns: 1fr; min-height: 0; }
     .login-marka-paneli { min-height: 190px; padding: 32px; }
+    .login-marka-ust { top: 20px; left: 32px; }.login-mini-paneli { right: 24px; bottom: 24px; transform: scale(.75) rotate(3deg); transform-origin: bottom right; }.login-marka-paneli .login-yuzen-ikon { transform: scale(.75); }
     .login-marka-icerik { max-width: 240px; }
     .login-logo { margin-bottom: 10px; font-size: 36px; }
     .login-marka-icerik h1 { font-size: 19px; }
@@ -677,7 +700,7 @@ body.koyu-tema .deneme-karti {
 
 .ayar-sayfa-ekle {
     display: grid;
-    grid-template-columns: minmax(150px, 0.8fr) minmax(180px, 1.2fr) auto;
+    grid-template-columns: minmax(150px, 0.75fr) minmax(180px, 1fr) minmax(220px, 1.5fr) auto;
     gap: 10px;
     margin-top: 14px;
 }
@@ -697,6 +720,36 @@ body.koyu-tema .deneme-karti {
     display: grid;
     gap: 6px;
     margin-top: 14px;
+}
+
+.ayar-ikon-secici {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding: 5px;
+    overflow-x: auto;
+    border: 1px solid var(--renk-kenarlik-input);
+    border-radius: var(--radius-orta);
+    background: var(--renk-yuzey-alt);
+}
+
+.ayar-ikon-secici button {
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.ayar-ikon-secici button:hover,
+.ayar-ikon-secici button.aktif {
+    border-color: var(--renk-vurgu);
+    background: var(--renk-vurgu-yuzey);
 }
 
 .ayar-sayfa-satiri {
@@ -720,6 +773,14 @@ body.koyu-tema .deneme-karti {
     font-weight: 600;
 }
 
+.ayar-sayfa-duzenle { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.ayar-sayfa-duzenle > input { width: min(220px, 35%); min-width: 100px; padding: 7px 9px; }
+.ayar-ikon-secici-duzenle { flex: 1; max-width: 310px; }
+.ayar-sayfa-eylemleri { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.ayar-sayfa-eylemleri button { border: 0; background: transparent; cursor: pointer; font: inherit; font-size: var(--yazi-kucuk); font-weight: 700; }
+.ayar-sayfa-duzenle-btn, .ayar-sayfa-kaydet { color: var(--renk-vurgu); }
+.ayar-sayfa-iptal { color: var(--renk-metin-ikincil); }
+
 .ayar-sayfa-sil {
     flex-shrink: 0;
     border: 0;
@@ -733,6 +794,9 @@ body.koyu-tema .deneme-karti {
 
 @media (max-width: 650px) {
     .ayar-sayfa-ekle { grid-template-columns: 1fr; }
+    .ayar-sayfa-duzenle { flex-wrap: wrap; }
+    .ayar-sayfa-duzenle > input { width: 100%; }
+    .ayar-ikon-secici-duzenle { max-width: none; width: 100%; }
 }
 
 .kategori-baslik-butonlar {
@@ -6008,10 +6072,15 @@ input[type="number"] {
 .widget-grid {
   display: grid !important;
   grid-template-columns: repeat(6, 1fr) !important;
-    grid-auto-flow: dense;
-    grid-auto-rows: 8px !important;
+        grid-auto-flow: dense;
+        grid-auto-rows: 8px !important;
     gap: 18px !important;
   align-items: start;
+}
+
+.widget-grid:not(.masonry-ready) {
+    grid-auto-flow: row !important;
+    grid-auto-rows: auto !important;
 }
 
 /* --- ÖZEL KAYDIRMA ÇUBUĞU (YÜZEN TASARIM) --- */

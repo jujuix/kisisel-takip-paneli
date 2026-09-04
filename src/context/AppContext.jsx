@@ -316,8 +316,12 @@ export const AppProvider = ({ children }) => {
   }, [user, appDataLoaded, pages, tabs, widgetLayouts, activeTabByPage, categories, tasks, panelData, dersData, isData, sportData, personalData, weeklyHabits, monthlyHabits, timelineProjects, uiScale]);
 
   const simgesi = (emoji) => {
-    if (iconStyle === "svg" && VEKTOR_IKONLAR[emoji]) {
-      return <span className="vektor-ikon-kutusu" dangerouslySetInnerHTML={{ __html: VEKTOR_IKONLAR[emoji] }} />;
+    if (iconStyle === "svg") {
+      const iconText = String(emoji || '📌');
+      const normalizedIcon = iconText.replace(/\uFE0F/g, '');
+      const matchedKey = Object.keys(VEKTOR_IKONLAR).find(key => key.replace(/\uFE0F/g, '') === normalizedIcon);
+      const svg = VEKTOR_IKONLAR[iconText] || VEKTOR_IKONLAR[normalizedIcon] || VEKTOR_IKONLAR[matchedKey] || VEKTOR_IKONLAR['📌'];
+      return <span className="vektor-ikon-kutusu" dangerouslySetInnerHTML={{ __html: svg }} />;
     }
     return emoji;
   };
@@ -352,13 +356,13 @@ export const AppProvider = ({ children }) => {
     setWidgetLayouts(prev => ({ ...prev, [newId]: [] }));
   };
 
-  const addPageFromTemplate = (templateId, pageName) => {
+  const addPageFromTemplate = (templateId, pageName, pageIcon) => {
     const template = PAGE_TEMPLATES.find(item => item.id === templateId);
     if (!template) return;
     const pageId = template.builtinId || `sayfa_${templateId}_${Date.now()}`;
     const firstTabId = template.builtinId ? template.tabs[0].id : `${pageId}_genel`;
     const pageTabs = template.tabs.map(tab => ({ ...tab, id: template.builtinId ? tab.id : (tab.id === `${templateId}_genel` ? firstTabId : `${pageId}_${tab.id}`) }));
-    const page = { id: pageId, ad: pageName?.trim() || template.ad, ikon: template.ikon, sabit: false, templateId };
+    const page = { id: pageId, ad: pageName?.trim() || template.ad, ikon: pageIcon || template.ikon, sabit: false, templateId };
     setPages(prev => prev.some(item => item.id === pageId) ? prev : [...prev, page]);
     setTabs(prev => ({ ...prev, [pageId]: pageTabs }));
     setActiveTabByPage(prev => ({ ...prev, [pageId]: firstTabId }));
@@ -382,6 +386,14 @@ export const AppProvider = ({ children }) => {
       return next;
     });
     setActivePage(prev => prev === pageId ? 'ana' : prev);
+  };
+
+  const updatePage = (pageId, changes) => {
+    setPages(prev => prev.map(page => page.id === pageId ? {
+      ...page,
+      ad: changes.ad?.trim() || page.ad,
+      ikon: changes.ikon || page.ikon
+    } : page));
   };
 
   const deleteTab = (sayfaTuru, tabId) => {
@@ -495,7 +507,7 @@ export const AppProvider = ({ children }) => {
       userName, setUserName,
       userAvatar, setUserAvatar,
       activePage, setActivePage,
-      pages, setPages, addPageFromTemplate, deletePage,
+      pages, setPages, addPageFromTemplate, deletePage, updatePage,
       activeDersTab, setActiveDersTab,
       tabs: tabs || defaultTabs, setTabs,
       activeTabByPage: activeTabByPage || { ana: "ana", is: "is", ders: "ders_genel" }, setActiveTabByPage, addTab, deleteTab,

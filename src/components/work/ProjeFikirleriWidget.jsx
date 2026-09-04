@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 export const ProjeFikirleriWidget = () => {
-  const [ideas, setIdeas] = useState([
+  const ideas = [
     { id: 1, text: "Claude Code ile otomatik kod asistanı entegrasyonu", tag: "AI/Dev" },
     { id: 2, text: "Discord için özel hatırlatıcı bot yazmak (Python)", tag: "Script" }
-  ]);
+  ];
 
   return (
     <div className="widget-kutu" style={{ backgroundColor: 'var(--renk-yuzey)', padding: '16px', borderRadius: '12px', border: '1px solid var(--renk-kenarlik)' }}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useApp } from '../context/AppContext';
@@ -69,9 +69,15 @@ export const LoginScreen = () => {
   return <div className="login-ekrani">
     <div className="login-kapsayici">
       <section className="login-marka-paneli">
+        <div className="login-marka-ust"><span className="login-durum-noktasi" /> Kişisel çalışma alanın</div>
         <div className="login-yuzen-ikon login-ikon-1">{simgesi('📅')}</div>
         <div className="login-yuzen-ikon login-ikon-2">{simgesi('✅')}</div>
         <div className="login-yuzen-ikon login-ikon-3">{simgesi('📊')}</div>
+        <div className="login-mini-paneli" aria-hidden="true">
+          <div className="login-mini-baslik"><span>Bugünkü akış</span><b>● Canlı</b></div>
+          <div className="login-mini-grafik"><i /><i /><i /><i /><i /><i /><i /></div>
+          <div className="login-mini-alt"><span><strong>12</strong> görev</span><span><strong>%84</strong> odak</span></div>
+        </div>
         <div className="login-marka-icerik">
           <div className="login-logo">vion<span>.</span></div>
           <h1>Planla. Odaklan. <span>İlerle.</span></h1>
@@ -81,7 +87,8 @@ export const LoginScreen = () => {
 
       <section className="login-form-paneli">
         <div className="login-form-ust">
-          <span className="login-adim">{mode === 'giris' ? 'HESABINA DÖN' : isSignupDetails ? '2 / 2  •  SANA ÖZEL BAŞLANGIÇ' : '1 / 2  •  HESAP OLUŞTUR'}</span>
+          <div className="login-form-meta"><span className="login-adim">{mode === 'giris' ? 'HESABINA DÖN' : isSignupDetails ? '2 / 2  •  SANA ÖZEL BAŞLANGIÇ' : '1 / 2  •  HESAP OLUŞTUR'}</span>{mode === 'giris' && <span className="login-guvenli">● Güvenli giriş</span>}</div>
+          {mode === 'kayit' && <div className="login-ilerleme"><span className={signupStep >= 1 ? 'aktif' : ''} /><span className={signupStep >= 2 ? 'aktif' : ''} /></div>}
           <h2>{mode === 'giris' ? 'Hoş geldin! 👋' : isSignupDetails ? 'Alanını seç.' : 'Aramıza katıl! 🚀'}</h2>
           <p>{mode === 'giris' ? 'vion hesabına giriş yap.' : isSignupDetails ? 'Panelini kullanmak istediğin alanlarla başlat.' : 'Önce giriş bilgilerini belirleyelim.'}</p>
         </div>

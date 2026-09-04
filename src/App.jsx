@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { useApp } from './context/AppContext';
 import { useAuth } from './context/AuthContext';
 import { LoginScreen } from './components/LoginScreen';
@@ -11,21 +11,38 @@ import { CalendarView } from './components/dashboard/CalendarView';
 import { TaskCategoryCard } from './components/dashboard/TaskCategoryCard';
 import { Notebook } from './components/dashboard/Notebook';
 import { Pomodoro } from './components/dashboard/Pomodoro';
-import { KonularWidget, DenemeEkleWidget, DenemeGecmisiWidget, YanlisAnalizWidget, YanlisEkleWidget, YanlisArsivWidget, CalismaTakvimWidget, HedeflerWidget } from './components/lessons/DersModule';
-import { SettingsModule } from './components/settings/SettingsModule';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CustomSelect } from './components/ui/CustomSelect';
-import { HabitWeeklyWidget } from './components/dashboard/HabitWeeklyWidget';
-import { HabitMonthlyWidget } from './components/dashboard/HabitMonthlyWidget';
-import { WorkTimelineWidget } from './components/dashboard/WorkTimelineWidget';
-import { WorkKanbanWidget } from './components/work/WorkKanbanWidget';
-import { CustomDatePicker } from './components/ui/CustomDatePicker';
-import { BugunOdakWidget } from "./components/work/BugunOdakWidget";
-import { ProjeFikirleriWidget } from "./components/work/ProjeFikirleriWidget";
-import { HizliBaglantilarWidget } from "./components/work/HizliBaglantilarWidget";
-import { YoutubeKursWidget } from './components/dashboard/YoutubeKursWidget';
-import { SportProgramWidget, SportDailyWidget, SportExercisesWidget } from './components/sport/SportWidgets';
-import { MoodTrackerWidget, PersonalHabitWidget, PersonalListsWidget, PersonalBooksWidget, PersonalMediaWidget, PersonalBudgetWidget, PersonalSubscriptionWidget, PersonalCycleWidget } from './components/personal/PersonalWidgets';
+
+const lazyNamed = (importer, exportName) => lazy(() => importer().then(module => ({ default: module[exportName] })));
+const SettingsModule = lazyNamed(() => import('./components/settings/SettingsModule'), 'SettingsModule');
+const CustomSelect = lazyNamed(() => import('./components/ui/CustomSelect'), 'CustomSelect');
+const CustomDatePicker = lazyNamed(() => import('./components/ui/CustomDatePicker'), 'CustomDatePicker');
+const HabitWeeklyWidget = lazyNamed(() => import('./components/dashboard/HabitWeeklyWidget'), 'HabitWeeklyWidget');
+const HabitMonthlyWidget = lazyNamed(() => import('./components/dashboard/HabitMonthlyWidget'), 'HabitMonthlyWidget');
+const WorkKanbanWidget = lazyNamed(() => import('./components/work/WorkKanbanWidget'), 'WorkKanbanWidget');
+const BugunOdakWidget = lazyNamed(() => import('./components/work/BugunOdakWidget'), 'BugunOdakWidget');
+const ProjeFikirleriWidget = lazyNamed(() => import('./components/work/ProjeFikirleriWidget'), 'ProjeFikirleriWidget');
+const HizliBaglantilarWidget = lazyNamed(() => import('./components/work/HizliBaglantilarWidget'), 'HizliBaglantilarWidget');
+const YoutubeKursWidget = lazyNamed(() => import('./components/dashboard/YoutubeKursWidget'), 'YoutubeKursWidget');
+const SportProgramWidget = lazyNamed(() => import('./components/sport/SportWidgets'), 'SportProgramWidget');
+const SportDailyWidget = lazyNamed(() => import('./components/sport/SportWidgets'), 'SportDailyWidget');
+const SportExercisesWidget = lazyNamed(() => import('./components/sport/SportWidgets'), 'SportExercisesWidget');
+const MoodTrackerWidget = lazyNamed(() => import('./components/personal/PersonalWidgets'), 'MoodTrackerWidget');
+const PersonalHabitWidget = lazyNamed(() => import('./components/personal/PersonalWidgets'), 'PersonalHabitWidget');
+const PersonalListsWidget = lazyNamed(() => import('./components/personal/PersonalWidgets'), 'PersonalListsWidget');
+const PersonalBooksWidget = lazyNamed(() => import('./components/personal/PersonalWidgets'), 'PersonalBooksWidget');
+const PersonalMediaWidget = lazyNamed(() => import('./components/personal/PersonalWidgets'), 'PersonalMediaWidget');
+const PersonalBudgetWidget = lazyNamed(() => import('./components/personal/PersonalWidgets'), 'PersonalBudgetWidget');
+const PersonalSubscriptionWidget = lazyNamed(() => import('./components/personal/PersonalWidgets'), 'PersonalSubscriptionWidget');
+const PersonalCycleWidget = lazyNamed(() => import('./components/personal/PersonalWidgets'), 'PersonalCycleWidget');
+const KonularWidget = lazyNamed(() => import('./components/lessons/DersModule'), 'KonularWidget');
+const DenemeEkleWidget = lazyNamed(() => import('./components/lessons/DersModule'), 'DenemeEkleWidget');
+const DenemeGecmisiWidget = lazyNamed(() => import('./components/lessons/DersModule'), 'DenemeGecmisiWidget');
+const YanlisAnalizWidget = lazyNamed(() => import('./components/lessons/DersModule'), 'YanlisAnalizWidget');
+const YanlisEkleWidget = lazyNamed(() => import('./components/lessons/DersModule'), 'YanlisEkleWidget');
+const YanlisArsivWidget = lazyNamed(() => import('./components/lessons/DersModule'), 'YanlisArsivWidget');
+const CalismaTakvimWidget = lazyNamed(() => import('./components/lessons/DersModule'), 'CalismaTakvimWidget');
+const HedeflerWidget = lazyNamed(() => import('./components/lessons/DersModule'), 'HedeflerWidget');
 
 
 export default function App() {
@@ -91,6 +108,75 @@ export default function App() {
   // O sekmedeki widget listesi
   const currentLayout = getSafeWidgetLayout(currentTabId);
   const activeWidgets = currentLayout.filter(w => w?.gorunur !== false);
+  const widgetGridRef = useRef(null);
+  const [masonryReadyFor, setMasonryReadyFor] = useState(null);
+  const masonryRowHeight = 8;
+  const masonryRowGap = 18;
+
+  const recalcMasonry = () => {
+    const grid = widgetGridRef.current;
+    if (!grid) return;
+
+    grid.querySelectorAll(':scope > .widget-kutu').forEach(element => {
+      const content = element.querySelector(':scope > .widget-icerik');
+      if (!content) return;
+      const toolbarHeight = element.querySelector(':scope > .widget-arac-cubugu')?.scrollHeight || 0;
+      const styles = getComputedStyle(element);
+      const verticalBoxSpace = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom)
+        + parseFloat(styles.borderTopWidth) + parseFloat(styles.borderBottomWidth);
+      const contentHeight = Math.max(content.scrollHeight, content.getBoundingClientRect().height)
+        + verticalBoxSpace;
+      const rowSpan = Math.max(1, Math.ceil(
+        (toolbarHeight + contentHeight + masonryRowGap) / (masonryRowHeight + masonryRowGap)
+      ));
+      const nextRowEnd = `span ${rowSpan}`;
+      if (element.style.gridRowEnd !== nextRowEnd) element.style.gridRowEnd = nextRowEnd;
+    });
+  };
+
+  useEffect(() => {
+    let firstFrame;
+    let secondFrame;
+    let firstTimeout;
+    let secondTimeout;
+    let resizeObserver;
+    let mutationObserver;
+
+    const scheduleRecalc = () => {
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
+      firstFrame = requestAnimationFrame(() => {
+        recalcMasonry();
+        setMasonryReadyFor(currentTabId);
+        secondFrame = requestAnimationFrame(recalcMasonry);
+      });
+      firstTimeout = window.setTimeout(recalcMasonry, 80);
+      secondTimeout = window.setTimeout(recalcMasonry, 300);
+    };
+
+    scheduleRecalc();
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(scheduleRecalc);
+      if (widgetGridRef.current) resizeObserver.observe(widgetGridRef.current);
+      widgetGridRef.current?.querySelectorAll('.widget-kutu, .widget-icerik').forEach(element => resizeObserver.observe(element));
+    }
+    if (typeof MutationObserver !== 'undefined' && widgetGridRef.current) {
+      mutationObserver = new MutationObserver(scheduleRecalc);
+      mutationObserver.observe(widgetGridRef.current, { childList: true, subtree: true });
+    }
+    window.addEventListener('resize', scheduleRecalc);
+
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
+      window.clearTimeout(firstTimeout);
+      window.clearTimeout(secondTimeout);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+      window.removeEventListener('resize', scheduleRecalc);
+    };
+  }, [activeWidgets, currentTabId, isEditMode]);
+
 
   const moveWidget = (widgetId, direction) => {
     const layout = widgetLayouts[currentTabId] || [];
@@ -103,50 +189,6 @@ export default function App() {
     const targetIndex = layout.findIndex(widget => widget.id === visibleWidgets[targetVisibleIndex].id);
     reorderWidgets(currentTabId, startIndex, direction === 'up' ? targetIndex : targetIndex + 1);
   };
-
-  const widgetGridRef = useRef(null);
-  const widgetRefs = useRef({});
-  const masonryRowHeight = 8;
-  const masonryRowGap = 18;
-
-  const recalcMasonry = () => {
-    const grid = widgetGridRef.current;
-    if (!grid) return;
-
-    Object.values(widgetRefs.current).forEach(element => {
-      if (!element) return;
-      const rowSpan = Math.max(1, Math.ceil(
-        (element.scrollHeight + masonryRowGap) / (masonryRowHeight + masonryRowGap)
-      ));
-      const nextRowEnd = `span ${rowSpan}`;
-      if (element.style.gridRowEnd !== nextRowEnd) {
-        element.style.gridRowEnd = nextRowEnd;
-      }
-    });
-  };
-
-  useLayoutEffect(() => {
-    recalcMasonry();
-  });
-
-  useEffect(() => {
-    let frameId;
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frameId);
-      frameId = requestAnimationFrame(recalcMasonry);
-    });
-
-    Object.values(widgetRefs.current).forEach(element => {
-      if (element) observer.observe(element);
-    });
-    window.addEventListener('resize', recalcMasonry);
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      observer.disconnect();
-      window.removeEventListener('resize', recalcMasonry);
-    };
-  }, [activeWidgets, currentTabId, isEditMode]);
 
   // Bu sekmede henüz eklenmemiş olan widget'lar
   const unaddedWidgets = ALL_WIDGETS.filter(w => !activeWidgets.some(aw => aw.id === w.id));
@@ -232,14 +274,10 @@ const today = new Date();
         return <BugunOdakWidget />
       case "is-kanban":
         return <WorkKanbanWidget />;
-      case "is-zaman":
-        return <WorkTimelineWidget />;
       case "aliskanlik-haftalik":
         return <HabitWeeklyWidget />;
       case "aliskanlik-aylik":
         return <HabitMonthlyWidget />;
-      case "aliskanlik-haftalik":
-        return <HabitWeeklyWidget />;
       
       case "gunluk-ozet":
         return <DailySummary />;
@@ -508,8 +546,6 @@ const today = new Date();
   }
 
   // Ders modülü için sabit alt sekmeler (Konular, Denemeler, Yanlışlar, Çalışma Takibi)
-  const isDersSubPage = activePage === 'ders' && ['ders_konular', 'ders_denemeler', 'ders_yanlislar', 'ders_takip'].includes(currentTabId);
-
   if (authLoading) {
     return <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Yükleniyor...</div>;
   }
@@ -519,7 +555,8 @@ const today = new Date();
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', color: 'var(--renk-metin-ikincil)' }}>Yükleniyor...</div>}>
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar onOpenAvatarModal={() => setShowAvatarModal(true)} />
       
       <main className="ana-icerik-alani" style={{ flex: 1 }}>
@@ -602,17 +639,14 @@ const today = new Date();
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                     transition={{ duration: 0.15, ease: 'easeOut' }}
-                    className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''}`}
+                    className={`widget-grid ${isEditMode ? 'duzenle-modu' : ''} ${masonryReadyFor === currentTabId ? 'masonry-ready' : ''}`}
                     style={{ marginTop: '16px' }}
                   >
                     {activeWidgets.map((w) => {
                       const widgetInfo = ALL_WIDGETS.find(aw => aw.id === w.id);
                       return (
                         <motion.div
-                          ref={element => { widgetRefs.current[w.id] = element; }}
-                          layout
                           transition={{
-                            layout: { duration: 0.25, ease: 'easeOut' }, // Animasyon süresi biraz yumuşatıldı
                             opacity: { duration: 0.12 }
                           }}
                           key={w.id}
@@ -907,6 +941,7 @@ const today = new Date();
           </div>
         )}
       </main>
-    </div>
+      </div>
+    </Suspense>
   );
 }

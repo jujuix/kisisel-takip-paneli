@@ -13,11 +13,11 @@ const SPORT_MOVES = {
 };
 
 export const SportProgramWidget = () => {
-  const { sportData, setSportData } = useApp();
+  const { sportData, setSportData, simgesi } = useApp();
   const sports = Object.keys(SPORT_MOVES);
   return (
     <div>
-      <div className="section-header"><h2>🏋️ Spor Programı</h2></div>
+      <div className="section-header"><h2>{simgesi('🏋️')} Spor Programı</h2></div>
       <p className="widget-yardimci-metin">Bu sayfanın ana spor türünü seç.</p>
       <div className="spor-secim-grid">
         {sports.map(item => <button type="button" key={item} className={`spor-secim-btn ${sportData.sporTuru === item ? 'aktif' : ''}`} onClick={() => setSportData(prev => ({ ...prev, sporTuru: item }))}>{item}</button>)}
@@ -27,7 +27,7 @@ export const SportProgramWidget = () => {
 };
 
 export const SportDailyWidget = () => {
-  const { sportData, setSportData } = useApp();
+  const { sportData, setSportData, simgesi } = useApp();
   const [date, setDate] = useState(today());
   const [minutes, setMinutes] = useState('');
   const records = sportData.kayitlar || [];
@@ -41,7 +41,7 @@ export const SportDailyWidget = () => {
   };
   return (
     <div>
-      <div className="section-header"><h2>📅 Spor Günlüğü</h2><strong className="seri-rozeti">🔥 {streak} gün seri</strong></div>
+      <div className="section-header"><h2>{simgesi('📅')} Spor Günlüğü</h2><strong className="seri-rozeti">{simgesi('🔥')} {streak} gün seri</strong></div>
       <p className="widget-yardimci-metin">{streak ? 'Serini korumak için bugün küçük bir adım at.' : 'İlk antrenmanını kaydet ve serini başlat.'}</p>
       <MonthCalendar markedDates={markedDates} selectedDate={date} onSelect={setDate} />
       <div className="gorev-formu-satir">

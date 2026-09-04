@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const WorkKanbanWidget = () => {
-  const { simgesi, tasks = [], addTask, deleteTask, updateTask, isEditMode } = useApp();
+  const { simgesi, tasks = [], addTask, deleteTask, updateTask } = useApp();
 
   const kanbanTasks = tasks.filter(t => t.baglanti === 'is');
 

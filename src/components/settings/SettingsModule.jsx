@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import { PAGE_TEMPLATES } from '../../constants';
+import { EMOJI_HAVUZU, PAGE_TEMPLATES } from '../../constants';
 
 export const SettingsModule = () => {
   const { 
@@ -8,7 +8,8 @@ export const SettingsModule = () => {
     accentColor, setAccentColor, 
     iconStyle, setIconStyle, 
     uiScale, setUiScale,
-    pages = [], addPageFromTemplate, deletePage,
+    simgesi,
+    pages = [], addPageFromTemplate, deletePage, updatePage,
     dersData, setDersData, 
     showConfirm 
   } = useApp();
@@ -16,6 +17,10 @@ export const SettingsModule = () => {
   const [customColor, setCustomColor] = useState(accentColor);
   const [selectedTemplate, setSelectedTemplate] = useState('spor');
   const [newPageName, setNewPageName] = useState('');
+  const [newPageIcon, setNewPageIcon] = useState('📌');
+  const [editingPageId, setEditingPageId] = useState(null);
+  const [editingPageName, setEditingPageName] = useState('');
+  const [editingPageIcon, setEditingPageIcon] = useState('📌');
 
   const renkSecenekleri = [
     { hex: "#10b981", ad: "Yeşil" },
@@ -36,8 +41,21 @@ export const SettingsModule = () => {
   };
 
   const handleAddPage = () => {
-    addPageFromTemplate(selectedTemplate, newPageName);
+    addPageFromTemplate(selectedTemplate, newPageName, newPageIcon);
     setNewPageName('');
+    setNewPageIcon('📌');
+  };
+
+  const startEditingPage = page => {
+    setEditingPageId(page.id);
+    setEditingPageName(page.ad);
+    setEditingPageIcon(page.ikon || '📌');
+  };
+
+  const savePage = () => {
+    if (!editingPageName.trim()) return;
+    updatePage(editingPageId, { ad: editingPageName, ikon: editingPageIcon });
+    setEditingPageId(null);
   };
 
   // Ders Verilerini JSON Olarak İndir
@@ -79,7 +97,7 @@ export const SettingsModule = () => {
             }
           });
         }
-      } catch (err) {
+      } catch {
         alert("Geçersiz yedek dosyası!");
       }
     };
@@ -119,13 +137,26 @@ export const SettingsModule = () => {
             {PAGE_TEMPLATES.map(template => <option key={template.id} value={template.id}>{template.ikon} {template.ad}</option>)}
           </select>
           <input type="text" value={newPageName} maxLength={30} onChange={e => setNewPageName(e.target.value)} placeholder="Sayfa adı (isteğe bağlı)" />
+          <div className="ayar-ikon-secici" aria-label="Yeni sayfa ikonu">
+            {EMOJI_HAVUZU.slice(0, 18).map(icon => <button key={icon} type="button" className={newPageIcon === icon ? 'aktif' : ''} onClick={() => setNewPageIcon(icon)} aria-label={`${icon} ikonunu seç`}>{simgesi(icon)}</button>)}
+          </div>
           <button type="button" className="ders-buyuk-buton" onClick={handleAddPage}>+ Sayfa Ekle</button>
         </div>
         <div className="ayar-sayfa-listesi">
           {pages.map(page => (
             <div className="ayar-sayfa-satiri" key={page.id}>
-              <span className="ayar-sayfa-adi">{page.ikon} {page.ad}</span>
-              <button type="button" className="ayar-sayfa-sil" onClick={() => showConfirm({ title: 'Sayfayı Kaldır', message: `${page.ad} sayfası ve sekmeleri kaldırılacak. Devam edilsin mi?`, confirmText: 'Kaldır', isDanger: true, onConfirm: () => deletePage(page.id) })}>Kaldır</button>
+              {editingPageId === page.id ? (
+                <div className="ayar-sayfa-duzenle">
+                  <input value={editingPageName} maxLength={30} onChange={e => setEditingPageName(e.target.value)} aria-label="Sayfa adı" />
+                  <div className="ayar-ikon-secici ayar-ikon-secici-duzenle" aria-label="Sayfa ikonu">
+                    {EMOJI_HAVUZU.slice(0, 18).map(icon => <button key={icon} type="button" className={editingPageIcon === icon ? 'aktif' : ''} onClick={() => setEditingPageIcon(icon)} aria-label={`${icon} ikonunu seç`}>{simgesi(icon)}</button>)}
+                  </div>
+                </div>
+              ) : <span className="ayar-sayfa-adi">{simgesi(page.ikon)} {page.ad}</span>}
+              <div className="ayar-sayfa-eylemleri">
+                {editingPageId === page.id ? <><button type="button" className="ayar-sayfa-kaydet" onClick={savePage}>Kaydet</button><button type="button" className="ayar-sayfa-iptal" onClick={() => setEditingPageId(null)}>İptal</button></> : <button type="button" className="ayar-sayfa-duzenle-btn" onClick={() => startEditingPage(page)}>Düzenle</button>}
+                <button type="button" className="ayar-sayfa-sil" onClick={() => showConfirm({ title: 'Sayfayı Kaldır', message: `${page.ad} sayfası ve sekmeleri kaldırılacak. Devam edilsin mi?`, confirmText: 'Kaldır', isDanger: true, onConfirm: () => deletePage(page.id) })}>Kaldır</button>
+              </div>
             </div>
           ))}
         </div>

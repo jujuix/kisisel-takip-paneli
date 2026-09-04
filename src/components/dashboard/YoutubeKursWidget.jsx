@@ -42,7 +42,6 @@ export const YoutubeKursWidget = () => {
       const videos = result.videos.map(video => ({
         id: video.id || createId('video'),
         title: video.title || 'Başlıksız video',
-        durationHours: 0,
         status: 'baslanmadi',
         durationHours: Number((video.durationSeconds / 3600).toFixed(2))
       }));

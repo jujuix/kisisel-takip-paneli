@@ -6,7 +6,7 @@ import { CustomDatePicker } from '../ui/CustomDatePicker';
 
 // --- 1. KONULAR WIDGET ---
 export const KonularWidget = () => {
-  const { dersData, setDersData, simgesi, showConfirm } = useApp();
+  const { dersData, setDersData, showConfirm } = useApp();
   const [newLessonName, setNewLessonName] = useState('');
   const [newTopicNames, setNewTopicNames] = useState({});
   const [topicModal, setTopicModal] = useState(null);

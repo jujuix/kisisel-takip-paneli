@@ -140,9 +140,22 @@ export const VEKTOR_IKONLAR = {
   "🎨": '<svg class="ikon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18h1a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h2a7 7 0 0 0 0-10z"/><circle cx="7" cy="10" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7" r="1"/></svg>'
 };
 
+const IKON_ESLESMELERI = {
+  '🏋️': '🎯', '🧘': '🌱', '💰': '🧾', '🛒': '📋', '🎵': '🎬', '📷': '🎨',
+  '✈️': '🚀', '🍳': '☕', '🧹': '🧪', '🐾': '❤️', '💻': '🤖', '🎓': '📚',
+  '🩺': '➕', '🚗': '🗓️', '🎮': '🤖', '🧾': '📋', '🧩': '⚙️', '🔧': '⚙️',
+  '🏆': '🎯', '❤️': '✅', '⏰': '⏱️', '💪': '🎯', '👋': '🤝', '🌇': '☀️',
+  '🌤️': '☀️', '🔁': '🔄', '📔': '📖', '🚧': '⚠️', '✉️': '📋', '🔒': '⚙️',
+  '🙈': '👁️', '👁️': '📖', '🌟': '🎯'
+};
+
+Object.entries(IKON_ESLESMELERI).forEach(([icon, source]) => {
+  if (!VEKTOR_IKONLAR[icon] && VEKTOR_IKONLAR[source]) VEKTOR_IKONLAR[icon] = VEKTOR_IKONLAR[source];
+});
+
 export const getGreetingMessage = (isim) => {
   const saat = new Date().getHours();
-  let secenekler = [];
+  let secenekler;
   if (saat >= 5 && saat < 12) {
     secenekler = [`Günaydın ${isim}! ☀️`, `Harika bir sabah ${isim}, bugün neler yapıyoruz? ☕`, `Enerjin tavan olsun ${isim}! 🚀`];
   } else if (saat >= 12 && saat < 18) {
